@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test tests/*.test.mjs"
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
+    "engine:test": "npm run test --workspace @pokerez/poker-engine --",
+    "engine:build": "npm run build --workspace @pokerez/poker-engine",
+    "engine:simulate": "npm run simulate --workspace @pokerez/poker-engine --",
+    "engine:typecheck": "npm run typecheck --workspace @pokerez/poker-engine"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.0",
@@ -30,5 +34,8 @@
     "@types/react-dom": "^19.2.0",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.9.0"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
