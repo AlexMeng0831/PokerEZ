@@ -41,12 +41,18 @@ Open [localhost:3000](http://localhost:3000). No environment variables, accounts
 | Route | Page |
 | --- | --- |
 | `/` | Play lobby |
-| `/table` | Original interactive table demo |
+| `/table` | Interactive Motion table rehearsal |
 | `/learn` | Rules, hand rankings, and basics |
 | `/profile` | Guest profile and labeled demo statistics |
 | `/preview` | Motion animation lab and focused table experience |
 
 Display name, theme preference, and demo room metadata are saved in this browser. Table and preview state reset on reload.
+
+## Interactive table
+
+Choose **Try a hand** on the lobby, then **Deal me in**. Call or raise pre-flop, check or bet through the board, or fold and watch the remaining cards. The table focuses automatically; Exit focus / Esc restores the page. Bet sizes use small presets and a slider. Best-hand labels stay beside the player, folded cards stay dimmed, and each completed hand can be replayed with fresh stacks.
+
+This is a branching UI rehearsal with fixed cards, scripted calls, and authored winners, not a poker rules engine. It always uses three sample seats; room settings are saved metadata for future engine integration. The separate `/preview` lab still demonstrates side-pot animations and all event types.
 
 ## Animation preview
 

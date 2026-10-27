@@ -1,264 +1,121 @@
 "use client";
-import { useState, useEffect } from "react";
-import {
-  ArrowLeft,
-  Copy,
-  Check,
-  Users,
-  RotateCcw,
-  Info,
-  CircleHelp,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import { MotionConfig, motion, useReducedMotion } from "motion/react";
+import { ArrowLeft, ArrowRight, Check, Copy, Maximize2, RotateCcw, Spade } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { AnimationTable } from "@/components/poker/animation/animation-table";
+import { TableFocusFrame } from "@/components/poker/animation/table-focus-frame";
+import { useMockPlayback } from "@/components/poker/animation/use-mock-playback";
 import { usePokerStore } from "@/lib/store";
-import {
-  ChipStack,
-  PlayerSeat,
-  CommunityCards,
-} from "@/components/poker/table-scene";
+import { rehearsalOpening, rehearsalRound, type RehearsalStreet, type RehearsalChoice, type SeatId } from "@/lib/animation/mock-game";
+import "../preview/preview.css";
+import "./table.css";
+
+const STREETS = ["Pre-flop", "Flop", "Turn", "River"];
 export default function Table() {
-  const router = useRouter();
+  const reduced = !!useReducedMotion();
+  const playback = useMockPlayback({ reduced, speed: 1.35 });
+  const { state, running } = playback;
   const { room, name, leave } = usePokerStore();
   const [mounted, setMounted] = useState(false);
-  const [amount, setAmount] = useState(8);
-  const [pot, setPot] = useState(12);
-  const [stack, setStack] = useState(92);
-  const [street, setStreet] = useState(0);
-  const [folded, setFolded] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [started, setStarted] = useState(false);
+  const [street, setStreet] = useState<RehearsalStreet>(0);
+  const [selected, setSelected] = useState<SeatId>("you");
+  const [amount, setAmount] = useState(16);
+  const [sizing, setSizing] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [logs, setLogs] = useState([
-    "Demo hand started. The flop is on the table.",
-  ]);
-  useEffect(() => setMounted(true), []);
+  const [feedback, setFeedback] = useState("");
+  const busy = useRef(false);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    setMounted(true);
+    return () => { if (copyTimer.current) clearTimeout(copyTimer.current); };
+  }, []);
   const activeRoom = mounted ? room : null;
-  function action(type: string) {
-    if (type === "Fold") {
-      setFolded(true);
-      setLogs((l) => [
-        "You folded. Reset the demo to try another action.",
-        ...l,
-      ]);
-    } else {
-      if (type === "Raise") {
-        setPot((p) => p + amount);
-        setStack((s) => s - amount);
-      }
-      setLogs((l) => [
-        type === "Raise"
-          ? `You raised to ${amount} chips. Scripted demo advanced.`
-          : "You checked. Scripted demo advanced.",
-        ...l,
-      ]);
-      setStreet((s) => Math.min(2, s + 1));
-    }
-  }
-  function reset() {
-    setPot(12);
-    setStack(92);
+  const finished = !!state.winner && !running;
+  const canAct = started && !finished && !running;
+  const hero = state.players.find((p) => p.id === "you")!;
+  const displayState = { ...state, players: state.players.map((p) => p.id === "you" ? { ...p, name: mounted && name !== "Player" ? name : "You" } : p) };
+  const phase = state.winner ? "Hand complete" : state.board.length === 5 ? "River" : state.board.length === 4 ? "Turn" : state.board.length === 3 ? "Flop" : "Pre-flop";
+
+  async function start() {
+    if (busy.current) return;
+    busy.current = true;
+    playback.reset();
+    setFocused(true);
+    setStarted(true);
     setStreet(0);
-    setFolded(false);
-    setLogs(["Demo hand reset. The flop is on the table."]);
+    setSelected("you");
+    setAmount(16);
+    setSizing(false);
+    setFeedback("");
+    try { await playback.playEvents(rehearsalOpening()); }
+    catch { setFeedback("The deal stopped. Try dealing again."); setStarted(false); }
+    finally { busy.current = false; }
   }
+  async function act(choice: RehearsalChoice) {
+    if (busy.current || !canAct) return;
+    const events = rehearsalRound(state, street, choice, amount);
+    if (!events.length) return;
+    busy.current = true;
+    setSizing(false);
+    setFeedback("");
+    try {
+      await playback.playEvents(events);
+      if (choice !== "fold" && street < 3) {
+        setStreet((street + 1) as RehearsalStreet);
+        setAmount(8);
+      }
+    } catch { setFeedback("The hand stopped. Deal again to reset the demo."); setStarted(false); }
+    finally { busy.current = false; }
+  }
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(activeRoom?.code || "EZDEMO");
+      setCopied(true);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2000);
+    } catch { setFeedback(`Room code: ${activeRoom?.code || "EZDEMO"}`); }
+  }
+  const title = !started ? "A seat for you. A hand to try." : running ? "The table is moving…" : finished ? hero.folded ? "Folded. There’s always another hand." : `Nice hand. You collected ${state.awarded} chips.` : street === 0 ? "Your turn · 8 to call" : "Your turn · check or bet";
+  const hint = !started ? "Try a short demo hand. No setup, no pressure." : running ? "Cards and chips settle before your next move." : finished ? "Same demo deal, fresh stacks. Try a different action." : street === 0 ? "Call matches the bet. Raise puts a little more in." : "Check to stay in for free, or choose a small bet.";
   return (
-    <main className="page table-page">
-      <div className="table-toolbar">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            leave();
-            router.push("/");
-          }}
-        >
-          <ArrowLeft size={16} /> Leave room
-        </Button>
-        <div className="room-details">
-          <strong>{activeRoom?.name || "The practice table"}</strong>
-          <button
-            className="copy-code"
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(
-                  activeRoom?.code || "EZDEMO",
-                );
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              } catch {
-                setLogs((l) => [
-                  "Clipboard unavailable. Room code: " +
-                    (activeRoom?.code || "EZDEMO"),
-                  ...l,
-                ]);
-              }
-            }}
-          >
-            {activeRoom?.code || "EZDEMO"}
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-          </button>
+    <MotionConfig reducedMotion="user">
+      <main className="page rehearsal-page">
+        <div className="rehearsal-toolbar">
+          <Button asChild variant="ghost" size="sm"><Link href="/" onClick={leave}><ArrowLeft size={15} /> Leave table</Link></Button>
+          <div className="rehearsal-room"><strong>{activeRoom?.name || "The practice table"}</strong><button onClick={copyCode} aria-label="Copy demo room code">{copied ? <Check size={12} /> : <Copy size={12} />}{copied ? "Copied" : activeRoom?.code || "EZDEMO"}</button></div>
+          <Button variant="outline" size="sm" onClick={() => setFocused(true)}><Maximize2 size={14} /> Focus table</Button>
         </div>
-        <span className="demo-badge">INTERACTIVE UI DEMO</span>
-      </div>
-      <div className="table-layout">
-        <section className="table-stage" aria-label="Poker table">
-          <div className="table-topline">
-            <span>
-              <i className="blue-dot" /> No Limit Hold’em
-            </span>
-            <span>Blinds {activeRoom?.blinds || "1 / 2"} · Play chips</span>
+        <TableFocusFrame active={focused} onExit={() => setFocused(false)}>
+          <div className="rehearsal-table">
+            <AnimationTable state={displayState} flights={playback.flights} reduced={reduced} speed={1.35} phase={phase} selectedSeat={selected} onSelectSeat={setSelected} activeSeat={canAct ? "you" : undefined} />
+            {!started && !running && <div className="table-welcome"><span className="welcome-spade"><Spade size={20} fill="currentColor" /></span><strong>Your next good hand starts here.</strong><span>3 seats · play chips · take your time</span><AnimatedButton onClick={() => void start()}>Deal me in <ArrowRight size={16} /></AnimatedButton></div>}
           </div>
-          <div className="felt-wrap">
-            <div className="poker-felt">
-              <div className="felt-inner">
-                <span className="felt-brand">♠ POKEREZ</span>
-                <div className="pot">
-                  <span>TOTAL POT</span>
-                  <strong>
-                    {pot} <small>chips</small>
-                  </strong>
-                </div>
-                <CommunityCards street={street} />
-                <div className="board-status">
-                  {["FLOP", "TURN", "RIVER"][street]} <span>·</span> DEMO HAND
-                  #001
-                </div>
-              </div>
+          <section className="table-dock panel" aria-label="Your poker actions" aria-busy={running}>
+            <div className="dock-topline">
+              <div className="dock-status" role="status" aria-live="polite"><span className={`status-light ${canAct ? "your-turn" : ""}`} /><div><strong>{title}</strong><p>{hint}</p></div></div>
+              <ol className="street-progress" aria-label="Hand progress">{STREETS.map((label, i) => <li key={label} className={started && (finished || i <= street) ? "reached" : ""} aria-current={started && !finished && i === street ? "step" : undefined}><span />{label}</li>)}</ol>
             </div>
-            <PlayerSeat name="Alex" initial="AL" stack={96} />
-            <PlayerSeat
-              name={mounted ? name : "Player"}
-              initial="YO"
-              stack={stack}
-              hero
-              folded={folded}
-            />
-            <span className="empty-seat empty-left">
-              <PlusSeat /> Open seat
-            </span>
-            <span className="empty-seat empty-right">
-              <PlusSeat /> Open seat
-            </span>
-            <div className="table-chips">
-              <ChipStack value={pot} />
+            {sizing && canAct && <motion.div className="bet-sizing" initial={{ opacity: 0, height: reduced ? "auto" : 0 }} animate={{ opacity: 1, height: "auto" }} transition={{ duration: .16 }}>
+              <div className="bet-presets"><label htmlFor="bet-size">{street === 0 ? "Raise to" : "Bet"} <strong>{amount} chips</strong></label><div>{(street === 0 ? [16, 20, 24] : [4, 8, 16]).map((value) => <button key={value} aria-pressed={amount === value} onClick={() => setAmount(value)}>{value}</button>)}</div></div>
+              <input id="bet-size" aria-label={street === 0 ? "Raise amount" : "Bet amount"} type="range" min={street === 0 ? 16 : 4} max={street === 0 ? 24 : 16} step={2} value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+            </motion.div>}
+            <div className="dock-actions">
+              {!started || finished ? <AnimatedButton onClick={() => void start()} disabled={running}>{finished ? <RotateCcw size={16} /> : <Spade size={16} />}{finished ? "Play another hand" : "Deal me in"}</AnimatedButton> : <>
+                <AnimatedButton variant="outline" disabled={!canAct} onClick={() => void act("fold")} className="fold-action">Fold</AnimatedButton>
+                <AnimatedButton variant="secondary" disabled={!canAct} onClick={() => void act("check-call")}>{street === 0 ? "Call 8" : "Check"}</AnimatedButton>
+                <AnimatedButton disabled={!canAct} aria-expanded={sizing} onClick={() => sizing ? void act("bet") : setSizing(true)}>{sizing ? `${street === 0 ? "Raise to" : "Bet"} ${amount}` : street === 0 ? "Raise…" : "Bet…"}</AnimatedButton>
+              </>}
             </div>
-          </div>
-        </section>
-        <aside className="table-sidebar panel">
-          <div className="section-heading">
-            <h3>At the table</h3>
-            <span className="tag">2 / {activeRoom?.seats || 6}</span>
-          </div>
-          {[
-            ["AL", "Alex", "96"],
-            ["YO", mounted ? name : "Player", String(stack)],
-          ].map(([a, n, s]) => (
-            <div className="roster-player" key={a}>
-              <span className="avatar">{a}</span>
-              <div>
-                <strong>
-                  {n}
-                  {a === "YO" && <small> (you)</small>}
-                </strong>
-                <span>
-                  <i /> Seated
-                </span>
-              </div>
-              <b>{s}</b>
-            </div>
-          ))}
-          <div className="activity">
-            <h4>
-              TABLE ACTIVITY <span className="demo-badge">DEMO</span>
-            </h4>
-            <div aria-live="polite">
-              {logs.slice(0, 5).map((l, i) => (
-                <p key={`${l}-${i}`}>
-                  <span />
-                  {l}
-                </p>
-              ))}
-            </div>
-          </div>
-          <div className="table-tip">
-            <CircleHelp size={19} />
-            <strong>A good time to check?</strong>
-            <p>
-              Checking keeps you in the hand without adding chips, when there’s
-              no bet to call.
-            </p>
-          </div>
-        </aside>
-      </div>
-      <section className="action-bar panel">
-        <div className="action-context">
-          <span className="blue-dot" />
-          <div>
-            <strong>
-              {folded
-                ? "Hand folded"
-                : street === 2
-                  ? "River is revealed"
-                  : "Take a seat. Try an action."}
-            </strong>
-            <span>Scripted preview · no poker rules or opponents running</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Reset demo hand"
-            onClick={reset}
-          >
-            <RotateCcw size={17} />
-          </Button>
-        </div>
-        <div className="action-controls">
-          <Button
-            variant="outline"
-            onClick={() => action("Fold")}
-            disabled={folded}
-          >
-            Fold
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={() => action("Check")}
-            disabled={folded || street === 2}
-          >
-            Check
-          </Button>
-          <div className="raise-input">
-            <label htmlFor="raise">Raise to</label>
-            <input
-              id="raise"
-              type="number"
-              min={4}
-              max={stack}
-              step={2}
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-            />
-          </div>
-          <Button
-            onClick={() => action("Raise")}
-            disabled={
-              folded ||
-              street === 2 ||
-              amount < 4 ||
-              amount > stack ||
-              !Number.isFinite(amount)
-            }
-          >
-            Raise <span>{amount}</span>
-          </Button>
-        </div>
-      </section>
-      <div className="table-disclaimer">
-        <Info size={14} /> This table demonstrates UI interactions only. Room
-        codes don’t connect to other players.
-      </div>
-    </main>
+            <div className="dock-footnote"><span>LOCAL DEMO · Fixed cards & scripted opponents</span>{sizing && canAct ? <button onClick={() => setSizing(false)}>Cancel bet</button> : <span>Play chips only</span>}</div>
+            {feedback && <p className="form-error" role="alert">{feedback}</p>}
+          </section>
+        </TableFocusFrame>
+      </main>
+    </MotionConfig>
   );
-}
-function PlusSeat() {
-  return <span>+</span>;
 }

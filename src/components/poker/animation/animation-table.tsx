@@ -25,6 +25,7 @@ function AnimatedSeat({
   awarded,
   selected,
   onSelect,
+  active = false,
 }: {
   player: Player;
   winner: boolean;
@@ -33,8 +34,9 @@ function AnimatedSeat({
   awarded: number;
   selected: boolean;
   onSelect: () => void;
+  active?: boolean;
 }) {
-  const visible = player.revealed || player.folded;
+  const visible = player.revealed;
   return (
     <div
       className={`preview-seat seat-${player.id} ${player.folded ? "seat-folded" : ""}`}
@@ -87,7 +89,7 @@ function AnimatedSeat({
         disabled={!visible}
         aria-label={`Inspect ${player.name}'s best hand`}
         aria-pressed={selected}
-        className={`preview-seat-label ${winner ? "is-winner" : ""} ${player.folded ? "is-folded" : ""} ${selected ? "is-inspected" : ""}`}
+        className={`preview-seat-label ${winner ? "is-winner" : ""} ${player.folded ? "is-folded" : ""} ${selected ? "is-inspected" : ""} ${active ? "is-turn" : ""}`}
         initial={false}
         animate={{
           boxShadow: winner
@@ -118,6 +120,7 @@ function AnimatedSeat({
             </span>
           )}
         </div>
+        {active && <span className="turn-tag">YOUR TURN</span>}
         {player.folded && <span className="folded-tag">FOLDED</span>}
       </motion.button>
       <div className={`seat-action ${winner ? "winner-action" : ""}`}>
@@ -145,6 +148,7 @@ export function AnimationTable({
   phase,
   selectedSeat,
   onSelectSeat,
+  activeSeat,
 }: {
   state: GameState;
   flights: Flight[];
@@ -153,10 +157,11 @@ export function AnimationTable({
   phase: string;
   selectedSeat: SeatId;
   onSelectSeat: (id: SeatId) => void;
+  activeSeat?: SeatId;
 }) {
   const inspected = state.players.find((p) => p.id === selectedSeat)!;
   const highlight =
-    inspected.revealed || inspected.folded
+    inspected.revealed
       ? (inspected.hand?.madeCards ?? [])
       : [];
   return (
@@ -219,6 +224,7 @@ export function AnimationTable({
         <AnimatedSeat
           key={player.id}
           player={player}
+          active={activeSeat === player.id}
           winner={state.winner === player.id}
           awarded={state.awarded}
           flights={flights}

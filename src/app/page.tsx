@@ -11,6 +11,7 @@ import {
   Users,
   ChevronRight,
   Check,
+  Play as PlayIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -18,6 +19,7 @@ import { usePokerStore } from "@/lib/store";
 import { CardRow } from "@/components/poker/playing-card";
 export default function Play() {
   const router = useRouter();
+  const leave = usePokerStore((s) => s.leave);
   const setRoom = usePokerStore((s) => s.setRoom);
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
@@ -57,6 +59,10 @@ export default function Play() {
             Your seat at the table starts here. <br />
             Play with friends, learn the ropes, and enjoy the game.
           </p>
+          <div className="hero-quick-play">
+            <Button asChild><Link href="/table" onClick={leave}><PlayIcon size={15} fill="currentColor" /> Try a hand <ArrowRight size={16} /></Link></Button>
+            <span>Instant local demo · no setup</span>
+          </div>
           <div className="hero-meta">
             <span>
               <ShieldCheck size={15} /> No stakes. No pressure.

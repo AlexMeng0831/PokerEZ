@@ -35,6 +35,7 @@ export type GameEvent =
       action: "Bet" | "Raise" | "Call";
       amount: number;
     }
+  | { type: "check"; seat: SeatId }
   | { type: "collect" }
   | { type: "board-deal"; card: Card; slot: number }
   | { type: "board-reveal"; slot: number }
@@ -97,6 +98,8 @@ export function gameReducer(state: GameState, event: GameEvent): GameState {
             : p,
         ),
       };
+    case "check":
+      return { ...state, players: state.players.map((p) => p.id === event.seat ? { ...p, action: "Check" } : p) };
     case "collect":
       return {
         ...state,
@@ -319,6 +322,8 @@ export function describeEvent(event: GameEvent): string {
       return `Deal card ${event.slot + 1} → ${event.seat}`;
     case "action":
       return `${event.seat}: ${event.action.toLowerCase()} +${event.amount}`;
+    case "check":
+      return `${event.seat}: check`;
     case "collect":
       return "Collect contributions → pot";
     case "board-deal":
@@ -338,4 +343,48 @@ export function describeEvent(event: GameEvent): string {
     case "reset":
       return "Reset fixture";
   }
+}
+
+// A bounded, branching UI rehearsal. This is not a rules engine: cards, replies,
+// turn order and outcomes are authored fixtures. Keep it out of engine code.
+export type RehearsalStreet = 0 | 1 | 2 | 3;
+export type RehearsalChoice = "fold" | "check-call" | "bet";
+export function rehearsalOpening(): GameEvent[] {
+  return [
+    ...MOCK_CHAPTERS[0].events,
+    { type: "action", seat: "alex", action: "Bet", amount: 8 },
+    { type: "action", seat: "sam", action: "Call", amount: 8 },
+  ];
+}
+export function rehearsalRound(
+  state: GameState,
+  street: RehearsalStreet,
+  choice: RehearsalChoice,
+  amount = 8,
+): GameEvent[] {
+  if (state.winner || state.players.some((p) => p.cards.length !== 2)) return [];
+  const hero = state.players.find((p) => p.id === "you")!;
+  if (hero.folded) return [];
+  if (choice === "fold") {
+    return [
+      { type: "fold", seat: "you" },
+      { type: "collect" },
+      ...[3, 4, 5].slice(street).flatMap((i) => MOCK_CHAPTERS[i].events),
+      { type: "showdown", winner: "alex" },
+      { type: "award" },
+    ];
+  }
+  // Deliberately small presets keep this rehearsal away from all-in/side-pot rules.
+  const target = choice === "bet" ? amount : street === 0 ? 8 : 0;
+  const min = street === 0 ? 16 : 4;
+  const max = street === 0 ? 24 : 16;
+  if (choice === "bet" && (!Number.isInteger(target) || target < min || target > max || target % 2 !== 0)) return [];
+  if (state.players.some((p) => target < p.bet || target - p.bet > p.stack)) return [];
+  const events: GameEvent[] = state.players.filter((p) => target === 0 || target > p.bet).map((p) => target === 0
+    ? { type: "check", seat: p.id }
+    : { type: "action", seat: p.id, action: p.id === "you" ? (street === 0 && choice === "bet" ? "Raise" : street === 0 ? "Call" : "Bet") : "Call", amount: target - p.bet });
+  events.push({ type: "collect" });
+  if (street < 3) events.push(...MOCK_CHAPTERS[street + 3].events);
+  else events.push({ type: "showdown", winner: "you" }, { type: "award" });
+  return events;
 }

@@ -2551,3 +2551,15 @@ footer {
     transform: none;
   }
 }
+
+.hero-quick-play { display:flex; align-items:center; gap:14px; margin-top:22px; }
+.hero-quick-play > span { color:var(--muted); font-size:10px; }
+.hero-quick-play + .hero-meta { margin-top:18px; }
+@media(hover:hover) {
+  .play-page .room-card { transition:border-color .2s, box-shadow .2s; }
+  .play-page .room-card:hover { border-color:color-mix(in srgb,var(--blue) 30%,var(--border)); box-shadow:0 5px 20px #2869ee08; }
+}
+@media(max-width:680px) {
+  .hero-quick-play { gap:10px; flex-wrap:wrap; }
+  .hero-quick-play > span { font-size:9px; }
+}
