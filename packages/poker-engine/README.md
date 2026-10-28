@@ -87,4 +87,4 @@ Vitest covers heads-up order, BB action, kickers/ties, short all-ins, reopening,
 
 Full `GameState` and history archives contain hidden cards. Only authorized player views and filtered events should cross a client boundary. Default seeded decks are predictable and intended for local testing; a multiplayer dealer must inject a securely shuffled complete deck.
 
-The frontend still uses mock events. This package provides no transport, authentication, storage, animation timing or ML policy. Supported table choices and excluded variants are defined in [house rules](house-rules.md).
+Transport and Guest sessions live in the separate [multiplayer package](../multiplayer/README.md). This Engine package contains no transport, authentication, storage, animation timing or ML policy. Supported table choices and excluded variants are defined in [house rules](house-rules.md).

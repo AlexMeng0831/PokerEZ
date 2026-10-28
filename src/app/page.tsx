@@ -15,35 +15,48 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { usePokerStore } from "@/lib/store";
+import { sendCommand, useMultiplayer } from "@/lib/multiplayer/client";
 import { CardRow } from "@/components/poker/playing-card";
 export default function Play() {
   const router = useRouter();
-  const leave = usePokerStore((s) => s.leave);
-  const setRoom = usePokerStore((s) => s.setRoom);
+  const connection = useMultiplayer();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [roomName, setRoomName] = useState("Friday night poker");
   const [blinds, setBlinds] = useState("1 / 2");
   const [seats, setSeats] = useState("6");
-  function create() {
-    setRoom({
-      code: Math.random().toString(36).slice(2, 8).toUpperCase().padEnd(6, "X"),
-      name: roomName.trim() || "My poker room",
-      blinds,
-      seats: Number(seats),
-    });
-    router.push("/table");
+  async function create() {
+    setError("");
+    const [smallBlind, bigBlind] = blinds.split(" / ").map(Number);
+    try {
+      await sendCommand({
+        type: "create",
+        name: roomName.trim() || "My poker room",
+        capacity: Number(seats),
+        smallBlind,
+        bigBlind,
+      });
+      router.push("/table");
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : "Unable to create room.",
+      );
+    }
   }
-  function join(e: React.FormEvent) {
+  async function join(e: React.FormEvent) {
     e.preventDefault();
+    setError("");
     if (!/^[A-Z0-9]{6}$/.test(code)) {
-      setError("Enter a 6-character room code, like AB12CD.");
+      setError("Enter the 6-character code from your friend.");
       return;
     }
-    setRoom({ code, name: "Your poker room", blinds: "1 / 2", seats: 6 });
-    router.push("/table");
+    try {
+      await sendCommand({ type: "join", code });
+      router.push("/table");
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "Unable to join room.");
+    }
   }
   return (
     <main className="page play-page">
@@ -60,8 +73,13 @@ export default function Play() {
             Play with friends, learn the ropes, and enjoy the game.
           </p>
           <div className="hero-quick-play">
-            <Button asChild><Link href="/table" onClick={leave}><PlayIcon size={15} fill="currentColor" /> Try a hand <ArrowRight size={16} /></Link></Button>
-            <span>Instant local demo · no setup</span>
+            <Button asChild>
+              <Link href="/preview">
+                <PlayIcon size={15} fill="currentColor" /> Try the demo{" "}
+                <ArrowRight size={16} />
+              </Link>
+            </Button>
+            <span>Solo preview · no setup</span>
           </div>
           <div className="hero-meta">
             <span>
@@ -87,6 +105,19 @@ export default function Play() {
           </div>
         </div>
       </section>
+      {connection.snapshot && (
+        <div className="resume-room panel">
+          <span>
+            Your seat is saved in{" "}
+            <strong>{connection.snapshot.room.name}</strong>.
+          </span>
+          <Button asChild size="sm">
+            <Link href="/table">
+              Return to table <ArrowRight size={15} />
+            </Link>
+          </Button>
+        </div>
+      )}
       <section className="room-grid" aria-label="Play options">
         <div className="panel room-card">
           <div className="room-card-top">
@@ -100,7 +131,14 @@ export default function Play() {
             Bring your friends to the table. <br />
             We’ll take care of the seats.
           </p>
-          <Button onClick={() => setOpen(true)}>
+          <Button
+            onClick={() => setOpen(true)}
+            disabled={
+              connection.pending ||
+              connection.status !== "connected" ||
+              !!connection.snapshot
+            }
+          >
             Create Room <ArrowRight size={17} />
           </Button>
           <span className="card-footnote">
@@ -138,7 +176,15 @@ export default function Play() {
                 aria-invalid={!!error}
                 aria-describedby="join-note"
               />
-              <Button variant="secondary" type="submit">
+              <Button
+                variant="secondary"
+                type="submit"
+                disabled={
+                  connection.pending ||
+                  connection.status !== "connected" ||
+                  !!connection.snapshot
+                }
+              >
                 Join Room <ArrowRight size={16} />
               </Button>
             </div>
@@ -146,7 +192,11 @@ export default function Play() {
               id="join-note"
               className={error ? "form-error" : "card-footnote"}
             >
-              {error || "Frontend demo · any 6-letter or number code works."}
+              {error ||
+                connection.error ||
+                (connection.status !== "connected"
+                  ? "Connecting your guest session…"
+                  : "Enter your friend’s room code to take a seat.")}
             </span>
           </form>
         </div>
@@ -246,7 +296,7 @@ export default function Play() {
         open={open}
         onOpenChange={setOpen}
         title="Your table, your way."
-        description="Choose a few details to open your frontend demo room."
+        description="Choose your table settings and share the code with friends."
       >
         <form
           onSubmit={(e) => {
@@ -271,7 +321,7 @@ export default function Play() {
                 value={blinds}
                 onChange={(e) => setBlinds(e.target.value)}
               >
-                <option>0.5 / 1</option>
+                <option>5 / 10</option>
                 <option>1 / 2</option>
                 <option>2 / 4</option>
               </select>
@@ -280,7 +330,9 @@ export default function Play() {
               Seats
               <select value={seats} onChange={(e) => setSeats(e.target.value)}>
                 <option>2</option>
+                <option>3</option>
                 <option>4</option>
+                <option>5</option>
                 <option>6</option>
               </select>
             </label>
@@ -288,7 +340,15 @@ export default function Play() {
           <div className="info-note">
             <Check size={16} /> No real money. Just a friendly practice space.
           </div>
-          <Button type="submit">
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <Button
+            type="submit"
+            disabled={connection.pending || connection.status !== "connected"}
+          >
             Open my table <ArrowRight size={17} />
           </Button>
         </form>

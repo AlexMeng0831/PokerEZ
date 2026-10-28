@@ -7,3 +7,5 @@ out/
 .npm-cache/
 
 packages/poker-engine/dist/
+
+packages/multiplayer/dist/

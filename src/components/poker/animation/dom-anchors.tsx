@@ -11,13 +11,13 @@ import {
   type ReactNode,
   type RefCallback,
 } from "react";
-import type { SeatId } from "@/lib/animation/mock-game";
+
 export type AnchorId =
   | "deck"
   | "pot"
-  | `seat-${SeatId}-${number}`
-  | `stack-${SeatId}`
-  | `bet-${SeatId}`
+  | `seat-${string}-${number}`
+  | `stack-${string}`
+  | `bet-${string}`
   | `board-${number}`;
 type Rect = { x: number; y: number; width: number; height: number };
 type Registry = {

@@ -3,17 +3,31 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0",
+    "dev": "concurrently -k -n web,server \"npm run dev:web\" \"npm run dev:server\"",
     "build": "next build",
-    "start": "next start --hostname 0.0.0.0",
+    "start": "concurrently -k -n web,server \"npm run start:web\" \"npm run start:server\"",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "engine:test": "npm run test --workspace @pokerez/poker-engine --",
     "engine:build": "npm run build --workspace @pokerez/poker-engine",
     "engine:simulate": "npm run simulate --workspace @pokerez/poker-engine --",
-    "engine:typecheck": "npm run typecheck --workspace @pokerez/poker-engine"
+    "engine:typecheck": "npm run typecheck --workspace @pokerez/poker-engine",
+    "check": "npm run engine:test && npm run engine:typecheck && npm run server:test && npm run server:typecheck && npm run server:build && npm run adapter:test && npm test && npm run typecheck && npm run build",
+    "server:build": "npm run engine:build && npm run build --workspace @pokerez/multiplayer",
+    "server:typecheck": "npm run typecheck --workspace @pokerez/multiplayer",
+    "server:test": "npm run engine:build && npm run test --workspace @pokerez/multiplayer",
+    "dev:web": "next dev --hostname 0.0.0.0",
+    "dev:server": "npm run dev --workspace @pokerez/multiplayer",
+    "predev": "npm run engine:build",
+    "adapter:test": "vitest run --config vitest.frontend.config.mjs",
+    "prebuild": "npm run engine:build",
+    "start:web": "next start --hostname 0.0.0.0",
+    "start:server": "npm run start --workspace @pokerez/multiplayer",
+    "prestart": "npm run server:build"
   },
   "dependencies": {
+    "@pokerez/multiplayer": "^0.1.0",
+    "@pokerez/poker-engine": "^0.1.0",
     "@radix-ui/react-dialog": "^1.1.0",
     "@radix-ui/react-slot": "^1.2.0",
     "class-variance-authority": "^0.7.1",
@@ -24,6 +38,7 @@
     "next-themes": "^0.4.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "socket.io-client": "^4.8.4",
     "tailwind-merge": "^3.0.0",
     "zustand": "^5.0.0"
   },
@@ -32,8 +47,10 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "concurrently": "^10.0.6",
     "tailwindcss": "^4.1.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
   },
   "workspaces": [
     "packages/*"

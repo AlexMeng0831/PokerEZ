@@ -1,13 +1,14 @@
 "use client";
+import type { CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { Check, Crown } from "lucide-react";
 import { PlayingCard } from "@/components/poker/playing-card";
 import {
-  cardKey,
-  type GameState,
-  type Player,
-  type SeatId,
-} from "@/lib/animation/mock-game";
+  visualKey as cardKey,
+  type TablePresentation,
+  type VisualPlayer,
+  type SeatPosition,
+} from "@/lib/multiplayer/presentation";
 import { DomAnchor, DomAnchorProvider } from "./dom-anchors";
 import {
   AnimatedAmount,
@@ -26,8 +27,10 @@ function AnimatedSeat({
   selected,
   onSelect,
   active = false,
+  hero = false,
+  position,
 }: {
-  player: Player;
+  player: VisualPlayer;
   winner: boolean;
   flights: Flight[];
   reduced: boolean;
@@ -35,10 +38,24 @@ function AnimatedSeat({
   selected: boolean;
   onSelect: () => void;
   active?: boolean;
+  hero?: boolean;
+  position?: SeatPosition;
 }) {
   const visible = player.revealed;
   return (
     <div
+      style={
+        position
+          ? {
+              left: `${position.left}%`,
+              top: position.top === undefined ? undefined : `${position.top}%`,
+              bottom:
+                position.bottom === undefined
+                  ? undefined
+                  : `${position.bottom}%`,
+            }
+          : undefined
+      }
       className={`preview-seat seat-${player.id} ${player.folded ? "seat-folded" : ""}`}
     >
       <div className="preview-hole-cards">
@@ -105,12 +122,15 @@ function AnimatedSeat({
         <div>
           <strong>
             {player.name}
-            {player.id === "you" && <small> · your seat</small>}
+            {hero && <small> · your seat</small>}
           </strong>
           <DomAnchor id={`stack-${player.id}`}>
             <AnimatedAmount value={player.stack} reduced={reduced} />
             <small> chips</small>
           </DomAnchor>
+          {player.bet > 0 && (
+            <span className="seat-bet-compact">Bet {player.bet}</span>
+          )}
           {visible && player.hand && (
             <span
               className="player-best-hand"
@@ -120,7 +140,10 @@ function AnimatedSeat({
             </span>
           )}
         </div>
-        {active && <span className="turn-tag">YOUR TURN</span>}
+        {player.role && <span className="seat-role">{player.role}</span>}
+        {active && (
+          <span className="turn-tag">{hero ? "YOUR TURN" : "TO ACT"}</span>
+        )}
         {player.folded && <span className="folded-tag">FOLDED</span>}
       </motion.button>
       <div className={`seat-action ${winner ? "winner-action" : ""}`}>
@@ -140,7 +163,7 @@ function AnimatedSeat({
     </div>
   );
 }
-export function AnimationTable({
+export function AnimationTable<Id extends string>({
   state,
   flights,
   reduced,
@@ -150,27 +173,28 @@ export function AnimationTable({
   onSelectSeat,
   activeSeat,
 }: {
-  state: GameState;
+  state: TablePresentation;
   flights: Flight[];
   reduced: boolean;
   speed: number;
   phase: string;
-  selectedSeat: SeatId;
-  onSelectSeat: (id: SeatId) => void;
-  activeSeat?: SeatId;
+  selectedSeat: Id;
+  onSelectSeat: (id: Id) => void;
+  activeSeat?: string;
 }) {
-  const inspected = state.players.find((p) => p.id === selectedSeat)!;
-  const highlight =
-    inspected.revealed
-      ? (inspected.hand?.madeCards ?? [])
-      : [];
+  const inspected = state.players.find((p) => p.id === selectedSeat);
+  const highlight = inspected?.revealed
+    ? (inspected.hand?.madeCards ?? [])
+    : [];
   return (
-    <DomAnchorProvider className="preview-stage panel">
+    <DomAnchorProvider
+      className={`preview-stage panel table-count-${state.players.length}`}
+    >
       <div className="preview-stage-top">
         <span>
           <i className="blue-dot" /> No Limit Hold’em
         </span>
-        <span>3 seats · Play chips</span>
+        <span>{state.players.length} seats · Play chips</span>
       </div>
       <div className="preview-felt">
         <div className="preview-felt-line" />
@@ -182,7 +206,12 @@ export function AnimationTable({
       </DomAnchor>
       <div className="preview-center">
         <DomAnchor id="pot" className="preview-pot-anchor">
-          <PotDisplay amount={state.pot} pots={state.pots} reduced={reduced} />
+          <PotDisplay
+            amount={state.pot}
+            pots={state.pots}
+            reduced={reduced}
+            names={Object.fromEntries(state.players.map((p) => [p.id, p.name]))}
+          />
         </DomAnchor>
         <div className="preview-board">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -217,20 +246,22 @@ export function AnimationTable({
           ))}
         </div>
         <span className="preview-phase">
-          {phase} <span>·</span> MOCK HAND #001
+          {phase} <span>·</span> {state.handLabel ?? "MOCK HAND #001"}
         </span>
       </div>
       {state.players.map((player) => (
         <AnimatedSeat
           key={player.id}
           player={player}
+          hero={player.id === (state.heroId ?? "you")}
+          position={state.positions?.[player.id]}
           active={activeSeat === player.id}
-          winner={state.winner === player.id}
-          awarded={state.awarded}
+          winner={(state.winners ?? [state.winner]).includes(player.id)}
+          awarded={state.awards?.[player.id] ?? state.awarded}
           flights={flights}
           reduced={reduced}
           selected={selectedSeat === player.id}
-          onSelect={() => onSelectSeat(player.id)}
+          onSelect={() => onSelectSeat(player.id as Id)}
         />
       ))}
       {state.players.map((player) => (
@@ -238,6 +269,18 @@ export function AnimationTable({
           key={player.id}
           id={`bet-${player.id}`}
           className={`preview-bet bet-${player.id}`}
+          style={
+            state.positions
+              ? ({
+                  left: `${state.positions[player.id].left}%`,
+                  ...(player.id === state.heroId
+                    ? { bottom: "27%" }
+                    : {
+                        top: `${(state.positions[player.id].top ?? 50) + (state.positions[player.id].top! >= 50 ? -7 : 24)}%`,
+                      }),
+                } as CSSProperties)
+              : undefined
+          }
         >
           <AnimatePresence>
             {player.bet > 0 && (

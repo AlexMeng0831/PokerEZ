@@ -9,7 +9,10 @@ import {
 } from "motion/react";
 import { PlayingCard } from "@/components/poker/playing-card";
 import { useAnchors, type AnchorId } from "./dom-anchors";
-import type { Card, Pot } from "@/lib/animation/mock-game";
+import type {
+  VisualCard as Card,
+  VisualPot as Pot,
+} from "@/lib/multiplayer/presentation";
 export function AnimatedAmount({
   value,
   reduced,
@@ -198,26 +201,32 @@ export function PotDisplay({
   amount,
   pots = [],
   reduced,
+  names,
 }: {
   amount: number;
   pots?: Pot[];
+  names?: Record<string, string>;
   reduced: boolean;
 }) {
-  return <SidePotLabels pots={pots} total={amount} reduced={reduced} />;
+  return (
+    <SidePotLabels pots={pots} total={amount} reduced={reduced} names={names} />
+  );
 }
 export function SidePotLabels({
   pots,
   total,
   reduced,
+  names,
 }: {
   pots: Pot[];
   total: number;
+  names?: Record<string, string>;
   reduced: boolean;
 }) {
   const main = pots[0];
   return (
     <motion.div
-      className={`pot-split-display ${main ? "is-split" : ""}`}
+      className={`pot-split-display ${main ? "is-split" : ""} ${pots.length > 3 ? "many-pots" : ""}`}
       aria-label={`Total pot: ${total} chips`}
     >
       <motion.div
@@ -233,8 +242,12 @@ export function SidePotLabels({
         {main && (
           <small className="pot-eligible">
             {main.eligible
-              .map((id) =>
-                id === "you" ? "You" : id.charAt(0).toUpperCase() + id.slice(1),
+              .map(
+                (id) =>
+                  names?.[id] ??
+                  (id === "you"
+                    ? "You"
+                    : id.charAt(0).toUpperCase() + id.slice(1)),
               )
               .join(" · ")}
           </small>
@@ -266,10 +279,12 @@ export function SidePotLabels({
             </strong>
             <small className="pot-eligible">
               {p.eligible
-                .map((id) =>
-                  id === "you"
-                    ? "You"
-                    : id.charAt(0).toUpperCase() + id.slice(1),
+                .map(
+                  (id) =>
+                    names?.[id] ??
+                    (id === "you"
+                      ? "You"
+                      : id.charAt(0).toUpperCase() + id.slice(1)),
                 )
                 .join(" · ")}
             </small>
