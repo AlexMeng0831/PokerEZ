@@ -21,7 +21,7 @@ npm run build
 npm start
 ```
 
-`check` is the exact command used in GitHub Actions: Engine tests/typecheck, multiplayer integration tests/typecheck/build, adapter tests, existing Mock tests, and frontend typecheck/build. `start` builds the backend, then runs both production processes. Local HTTP development uses non-Secure cookies; set `NODE_ENV=production` behind HTTPS to enable Secure cookies.
+`check` runs the complete local validation: Engine tests/typecheck, multiplayer integration tests/typecheck/build, adapter tests, existing Mock tests, and frontend typecheck/build. `start` builds the backend, then runs both production processes. Local HTTP development uses non-Secure cookies; set `NODE_ENV=production` behind HTTPS to enable Secure cookies.
 
 ## Browser flow
 

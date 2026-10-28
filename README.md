@@ -31,7 +31,7 @@ Rooms support 2–6 players. The server owns game state, validates every action 
 | ---------------------------------------- | ---------------------------------------------------- |
 | `npm run dev`                            | Start frontend and multiplayer server                |
 | `npm run dev:web` / `npm run dev:server` | Run either process separately                        |
-| `npm run check`                          | Run the same tests, typechecks and builds used by CI |
+| `npm run check`                          | Run all tests, typechecks and builds locally |
 | `npm run build`                          | Build the frontend and its Engine dependency         |
 | `npm start`                              | Start the built frontend and multiplayer server      |
 | `npm run engine:test`                    | Run Engine tests and randomized invariants           |
@@ -40,7 +40,7 @@ Rooms support 2–6 players. The server owns game state, validates every action 
 | `npm test`                               | Run existing Mock-state tests                        |
 | `npm run engine:simulate`                | Run standalone CLI poker examples                    |
 
-GitHub Actions runs `npm ci` and `npm run check` on Push and Pull Request, using Node.js 24.
+Run `npm run check` locally before pushing changes. Automatic GitHub Actions CI is currently disabled.
 
 ## Project structure
 
