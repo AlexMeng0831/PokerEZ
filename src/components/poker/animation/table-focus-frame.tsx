@@ -6,10 +6,12 @@ export function TableFocusFrame({
   active,
   onExit,
   children,
+  actions,
 }: {
   active: boolean;
   onExit: () => void;
   children: ReactNode;
+  actions?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const exit = useRef(onExit);
@@ -22,6 +24,8 @@ export function TableFocusFrame({
     document.body.style.overflow = "hidden";
     document.body.style.overscrollBehavior = "none";
     const keydown = (event: KeyboardEvent) => {
+      // Portalled help dialogs manage their own focus and Escape key.
+      if (!root.current?.contains(event.target as Node)) return;
       if (event.key === "Escape") {
         event.preventDefault();
         exit.current();
@@ -67,9 +71,12 @@ export function TableFocusFrame({
           <Spade size={17} fill="currentColor" /> PokerEZ{" "}
           <small>FOCUS TABLE</small>
         </span>
-        <Button variant="outline" size="sm" data-exit-focus onClick={onExit}>
-          <Minimize2 size={14} /> Exit focus
-        </Button>
+        <div className="focus-actions">
+          {actions}
+          <Button variant="outline" size="sm" data-exit-focus onClick={onExit}>
+            <Minimize2 size={14} /> Exit focus
+          </Button>
+        </div>
       </div>
       {children}
     </div>

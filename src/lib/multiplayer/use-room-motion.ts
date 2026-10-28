@@ -9,6 +9,7 @@ import {
   valueHint,
   visualCard,
 } from "./adapter";
+import { presentPayout } from "./payout-presentation";
 import type { TablePresentation } from "./presentation";
 const pause = (ms: number, signal: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
@@ -115,6 +116,7 @@ export function useRoomMotion(snapshot: RoomSnapshot | null, reduced: boolean) {
               const next = fromSnapshot(packet);
               assign({
                 ...next,
+                phase: "preflop",
                 players: next.players.map((p) => ({
                   ...p,
                   stack:
@@ -217,6 +219,8 @@ export function useRoomMotion(snapshot: RoomSnapshot | null, reduced: boolean) {
                     : [],
                 players: state.players.map((p) => ({ ...p, bet: 0 })),
               });
+            } else if (d.type === "STREET_STARTED") {
+              assign({ ...state, phase: d.phase.toLowerCase() });
             } else if (d.type === "BOARD_DEALT") {
               for (const card of d.cards) {
                 const slot = state.board.length;
@@ -242,6 +246,7 @@ export function useRoomMotion(snapshot: RoomSnapshot | null, reduced: boolean) {
             } else if (d.type === "SHOWDOWN") {
               assign({
                 ...state,
+                phase: "showdown",
                 players: state.players.map((p) => {
                   const h = d.hands.find((h) => h.playerId === p.id);
                   return h
@@ -256,36 +261,25 @@ export function useRoomMotion(snapshot: RoomSnapshot | null, reduced: boolean) {
               });
               await pause(pref.current ? 10 : 350, own.signal);
             } else if (d.type === "POT_AWARDED") {
-              const awards = { ...state.awards };
-              for (const share of d.pot.shares)
-                awards[share.playerId] =
-                  (awards[share.playerId] ?? 0) + share.amount;
+              const paid = presentPayout(state, d.pot);
               assign({
                 ...state,
-                winners: Object.keys(awards),
-                winner: Object.keys(awards)[0] ?? null,
-                awards,
+                winners: paid.winners,
+                winner: paid.winner,
+                awards: paid.awards,
               });
               await fly(
-                d.pot.shares.map((s) => ({
-                  kind: "chip" as const,
-                  from: "pot" as const,
-                  to: `stack-${s.playerId}` as const,
-                  amount: s.amount,
-                })),
+                d.pot.shares
+                  .filter((s) => s.amount > 0)
+                  .map((s) => ({
+                    kind: "chip" as const,
+                    from: "pot" as const,
+                    to: `stack-${s.playerId}` as const,
+                    amount: s.amount,
+                  })),
                 340,
               );
-              assign({
-                ...state,
-                pot: Math.max(0, state.pot - d.pot.amount),
-                players: state.players.map((p) => ({
-                  ...p,
-                  stack:
-                    p.stack +
-                    (d.pot.shares.find((s) => s.playerId === p.id)?.amount ??
-                      0),
-                })),
-              });
+              assign(paid);
             }
           }
           assign(fromSnapshot(packet, state));

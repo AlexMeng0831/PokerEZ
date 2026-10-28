@@ -117,7 +117,7 @@ export function seatPositions(
     6: [
       { left: 15, top: 65 },
       { left: 16, top: 22 },
-      { left: 50, top: 6 },
+      { left: 50, top: 1 },
       { left: 84, top: 22 },
       { left: 85, top: 65 },
     ],
@@ -158,8 +158,8 @@ export function fromSnapshot(
         : p.status === "ALL_IN"
           ? "All in"
           : same
-            ? (prior?.players.find((q) => q.id === p.id)?.action ?? "Seated")
-            : "Seated",
+            ? (prior?.players.find((q) => q.id === p.id)?.action ?? "")
+            : "",
     role:
       p.seat === view.buttonSeat
         ? "D"
@@ -192,6 +192,7 @@ export function fromSnapshot(
     dealerId: view.players.find((p) => p.seat === view.buttonSeat)?.id,
     positions: seatPositions(view.players, playerId),
     handId: view.handId,
+    phase: view.phase.toLowerCase(),
     handLabel: view.handNo
       ? `HAND #${String(view.handNo).padStart(3, "0")}`
       : "WAITING FOR PLAYERS",

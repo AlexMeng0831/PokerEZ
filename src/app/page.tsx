@@ -6,10 +6,8 @@ import {
   Plus,
   ArrowRight,
   Link2,
-  BookOpen,
   ShieldCheck,
   Users,
-  ChevronRight,
   Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,7 +60,7 @@ export default function Play() {
       <section className="hero">
         <div>
           <div className="eyebrow">
-            <span className="blue-dot" /> GOOD COMPANY. GREAT HANDS.
+            <span className="blue-dot" /> PLAY WITH FRIENDS
           </div>
           <h1>
             Make poker <span>EZ.</span>
@@ -71,20 +69,18 @@ export default function Play() {
             Create a room, share the code, and play with friends. <br />
             2–6 players. No account needed.
           </p>
-          <div className="hero-quick-play">
-            {connection.snapshot ? (
+          {connection.snapshot && (
+            <div className="hero-quick-play">
               <Button asChild>
-                <Link href="/table">Return to Table <ArrowRight size={16} /></Link>
+                <Link href="/table">
+                  Return to Table <ArrowRight size={16} />
+                </Link>
               </Button>
-            ) : (
-              <Button onClick={() => setOpen(true)}>
-                <Plus size={17} /> Create Room
-              </Button>
-            )}
-            <Button variant="outline" asChild>
-              <a href="#join-room"><Link2 size={16} /> Join Room</a>
-            </Button>
-          </div>
+              <span>
+                Your seat in {connection.snapshot.room.name} is saved.
+              </span>
+            </div>
+          )}
           <div className="hero-meta">
             <span>
               <ShieldCheck size={15} /> No stakes. No pressure.
@@ -104,9 +100,7 @@ export default function Play() {
           </div>
           <span className="art-chip">EZ</span>
           <span className="art-spark">✦</span>
-          <div className="art-caption">
-            A good hand starts with a little confidence.
-          </div>
+          <div className="art-caption">Private rooms · Play chips</div>
         </div>
       </section>
       <section className="room-grid" aria-label="Play options">
@@ -115,19 +109,13 @@ export default function Play() {
             <span className="icon-box">
               <Plus size={24} />
             </span>
-            <span className="tag">YOUR TABLE, YOUR RULES</span>
+            <span className="tag">PRIVATE TABLE</span>
           </div>
           <h2>Create a room</h2>
-          <p>
-            Bring your friends to the table. <br />
-            We’ll take care of the seats.
-          </p>
+          <p>Choose blinds and seats, then share your room code.</p>
           <Button
             onClick={() => setOpen(true)}
-            disabled={
-              connection.pending ||
-              !!connection.snapshot
-            }
+            disabled={connection.pending || !!connection.snapshot}
           >
             Create Room <ArrowRight size={17} />
           </Button>
@@ -142,13 +130,10 @@ export default function Play() {
             <span className="icon-box">
               <Link2 size={23} />
             </span>
-            <span className="tag">SAVE YOUR SEAT</span>
+            <span className="tag">ROOM CODE</span>
           </div>
           <h2>Join your friends</h2>
-          <p>
-            Already have a room code? <br />
-            There’s a seat waiting for you.
-          </p>
+          <p>Enter the six-character code from your friend.</p>
           <form onSubmit={join}>
             <label className="sr-only" htmlFor="room-code">
               Room code
@@ -177,7 +162,8 @@ export default function Play() {
                   !!connection.snapshot
                 }
               >
-                Join Room <ArrowRight size={16} />
+                {connection.pending ? "Joining…" : "Join Room"}{" "}
+                <ArrowRight size={16} />
               </Button>
             </div>
             <span
@@ -185,110 +171,31 @@ export default function Play() {
               className={error ? "form-error" : "card-footnote"}
             >
               {error ||
-                (connection.snapshot ? "You already have a seat. Return to your table to keep playing." : "") ||
+                (connection.snapshot
+                  ? "You already have a seat. Return to your table to keep playing."
+                  : "") ||
                 connection.error ||
                 (connection.status !== "connected"
                   ? "Connecting your guest session…"
                   : "Enter your friend’s room code to take a seat.")}
             </span>
+            {["error", "reconnecting"].includes(connection.status) && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={connection.reconnect}
+              >
+                Reconnect
+              </Button>
+            )}
           </form>
-        </div>
-      </section>
-      <Link href="/learn" className="learn-banner">
-        <div className="icon-box subtle">
-          <BookOpen size={23} />
-        </div>
-        <div>
-          <h3>New to the table? You’re in the right place.</h3>
-          <p>Learn the rules, know your hands, and play with confidence.</p>
-        </div>
-        <span className="text-link">
-          Explore the basics <ArrowRight size={17} />
-        </span>
-      </Link>
-      <section className="recent-section">
-        <div className="section-heading">
-          <div>
-            <h2>
-              Recent sessions <span className="demo-badge">DEMO DATA</span>
-            </h2>
-            <p>A little look at what your poker journey could look like.</p>
-          </div>
-          <Link href="/profile" className="text-link">
-            View profile <ArrowRight size={16} />
-          </Link>
-        </div>
-        <div className="panel table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Session</th>
-                <th>Players</th>
-                <th>Blinds</th>
-                <th>Result</th>
-                <th />
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                [
-                  "Friday night with friends",
-                  "Oct 12, 2026",
-                  "4 players",
-                  "1 / 2",
-                  "+24",
-                ],
-                [
-                  "A little evening practice",
-                  "Oct 10, 2026",
-                  "3 players",
-                  "1 / 2",
-                  "−8",
-                ],
-                [
-                  "First time at the table",
-                  "Oct 08, 2026",
-                  "2 players",
-                  "0.5 / 1",
-                  "+12",
-                ],
-              ].map(([title, date, players, blinds, result]) => (
-                <tr key={title}>
-                  <td>
-                    <strong>{title}</strong>
-                    <small>{date}</small>
-                  </td>
-                  <td>
-                    <Users size={14} className="inline-icon" />
-                    {players}
-                  </td>
-                  <td>
-                    {blinds}
-                    <span className="muted"> chips</span>
-                  </td>
-                  <td
-                    className={result.startsWith("+") ? "positive" : "negative"}
-                  >
-                    {result} <span className="muted">BB</span>
-                  </td>
-                  <td>
-                    <Link
-                      aria-label={`View demo session: ${title}`}
-                      href="/profile"
-                    >
-                      <ChevronRight size={16} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
       <Modal
         open={open}
         onOpenChange={setOpen}
-        title="Your table, your way."
+        title="Create a room"
         description="Create a multiplayer room and invite friends with its room code."
       >
         <form
@@ -347,7 +254,8 @@ export default function Play() {
             type="submit"
             disabled={connection.pending || connection.status !== "connected"}
           >
-            Open my table <ArrowRight size={17} />
+            {connection.pending ? "Creating room…" : "Create Room"}{" "}
+            <ArrowRight size={17} />
           </Button>
         </form>
       </Modal>

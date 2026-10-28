@@ -12,6 +12,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { GuestAction } from "@pokerez/multiplayer/protocol";
+import { TableHelp } from "@/components/poker/table-help";
 import { Button } from "@/components/ui/button";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { AnimationTable } from "@/components/poker/animation/animation-table";
@@ -42,12 +43,16 @@ export default function Table() {
   const view = snapshot?.view;
   const range = view?.legalActions?.bet ?? view?.legalActions?.raiseTo;
   useEffect(() => {
-    if (view?.handId && view.handId !== focusedHand.current) {
+    if (
+      view?.handId &&
+      !["WAITING", "FINISHED"].includes(view.phase) &&
+      view.handId !== focusedHand.current
+    ) {
       focusedHand.current = view.handId;
       setFocused(true);
     }
     if (snapshot) setSelected(snapshot.playerId);
-  }, [view?.handId, snapshot?.playerId]);
+  }, [view?.handId, view?.phase, snapshot?.playerId]);
   useEffect(() => {
     setSizing(false);
     setAmount(range?.minTo ?? 0);
@@ -135,7 +140,7 @@ export default function Table() {
         : view.phase === "WAITING"
           ? ready < 2
             ? "Waiting for a friend to take a seat."
-            : "Everyone's here. Ready to deal?"
+            : "Two or more players are ready. Start when you like."
           : view.phase === "FINISHED"
             ? presentation.awards?.[snapshot.playerId]
               ? `You collected ${presentation.awards[snapshot.playerId]} chips.`
@@ -160,7 +165,9 @@ export default function Table() {
     );
   }
   return (
-    <main className="page rehearsal-page multiplayer-page">
+    <main
+      className={`page rehearsal-page multiplayer-page ${view.phase === "WAITING" ? "is-waiting" : ""}`}
+    >
       <div className="rehearsal-toolbar">
         {between ? (
           <Button variant="ghost" size="sm" onClick={leave} disabled={pending}>
@@ -182,19 +189,33 @@ export default function Table() {
             <span data-room-code>{snapshot.room.code}</span>
           </button>
         </div>
+        <TableHelp />
         <Button variant="outline" size="sm" onClick={() => setFocused(true)}>
           <Maximize2 size={14} />
           Focus table
         </Button>
       </div>
-      <TableFocusFrame active={focused} onExit={() => setFocused(false)}>
+      <TableFocusFrame
+        active={focused}
+        onExit={() => setFocused(false)}
+        actions={
+          <>
+            <TableHelp />
+            <Button asChild variant="outline" size="sm">
+              <Link href="/" title="Return to lobby · keep your seat">
+                Lobby
+              </Link>
+            </Button>
+          </>
+        }
+      >
         <div className="rehearsal-table">
           <AnimationTable
             state={presentation}
             flights={flights}
             reduced={reduced}
             speed={1}
-            phase={view.phase.toLowerCase()}
+            phase={presentation.phase ?? view.phase.toLowerCase()}
             selectedSeat={selected}
             onSelectSeat={setSelected}
             activeSeat={busy ? undefined : (view.actorId ?? undefined)}
@@ -203,9 +224,7 @@ export default function Table() {
             <div className="table-welcome">
               <Spade size={22} fill="currentColor" />
               <strong>
-                {ready < 2
-                  ? "Good company starts with an invite."
-                  : "Your table is ready."}
+                {ready < 2 ? "Waiting for players" : "Your table is ready."}
               </strong>
               <span>
                 {view.players.length} / {snapshot.room.capacity} players ·{" "}
@@ -230,7 +249,12 @@ export default function Table() {
               <div>
                 <strong>{title}</strong>
                 {snapshot.turnDeadline && !between && (
-                  <span className="turn-clock">
+                  <span
+                    className="turn-clock"
+                    role="timer"
+                    aria-live="off"
+                    aria-label="Seconds remaining in this turn"
+                  >
                     {Math.max(
                       0,
                       Math.ceil((snapshot.turnDeadline - now) / 1000),
@@ -243,7 +267,7 @@ export default function Table() {
                     ? "Your guest seat is saved for reconnects."
                     : hero.status === "FOLDED"
                       ? "Your cards stay visible to you while the hand plays out."
-                      : "Take your time. The server checks every action."}
+                      : "Choose an action before the timer runs out."}
                 </p>
               </div>
             </div>
@@ -263,6 +287,69 @@ export default function Table() {
               ))}
             </ol>
           </div>
+          {view.phase === "WAITING" && (
+            <div className="room-roster" aria-label="Room players">
+              <p>
+                <strong>
+                  {ready} ready · {view.players.length}/{snapshot.room.capacity}{" "}
+                  seats
+                </strong>
+                <span>
+                  {ready >= 2
+                    ? "Any connected player can start."
+                    : "At least two online players with chips are needed."}
+                </span>
+              </p>
+              <ul>
+                {view.players.map((p) => {
+                  const online = snapshot.connected.includes(p.id);
+                  return (
+                    <li key={p.id}>
+                      <i className={online ? "online" : "offline"} />
+                      <strong>
+                        {p.id === snapshot.playerId ? "You" : p.name}
+                      </strong>
+                      <span>
+                        {!online
+                          ? "Offline · seat saved"
+                          : p.stack === 0
+                            ? "Needs chips"
+                            : "Ready"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+          {!busy && view.result && (
+            <details className="hand-result" open>
+              <summary>
+                Hand result ·{" "}
+                {view.result.reason === "UNCONTESTED"
+                  ? "Everyone else folded"
+                  : "Showdown"}
+              </summary>
+              <ul>
+                {view.result.pots.map((pot, i) => (
+                  <li key={pot.id}>
+                    <strong>
+                      {i === 0 ? "Main pot" : `Side pot ${i}`} · {pot.amount}{" "}
+                      chips{pot.winners.length > 1 ? " · Split" : ""}
+                    </strong>
+                    <span>
+                      {pot.shares
+                        .map(
+                          (share) =>
+                            `${share.playerId === snapshot.playerId ? "You" : (view.players.find((p) => p.id === share.playerId)?.name ?? "Player")} +${share.amount}`,
+                        )
+                        .join(" · ")}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
           {sizing && range && canAct && (
             <div className="bet-sizing">
               <div className="bet-presets">
@@ -272,6 +359,7 @@ export default function Table() {
                 <input
                   id="custom-bet"
                   aria-label="Custom bet amount"
+                  aria-describedby="bet-range-note"
                   aria-invalid={!valid}
                   type="number"
                   inputMode="numeric"
@@ -313,6 +401,15 @@ export default function Table() {
                   <button onClick={() => setAmount(range.maxTo)}>ALL IN</button>
                 </div>
               </div>
+              <p id="bet-range-note" className="bet-range-note">
+                {range.minTo === range.maxTo && range.minTo < range.fullMinTo
+                  ? `Short all-in only: ${range.maxTo} total.`
+                  : `Min ${range.minTo} · Max ${range.maxTo} chips.`}{" "}
+                Your total on this street
+                {valid
+                  ? ` · add ${amount - hero.streetCommitted} chips`
+                  : ". Enter a whole number in range."}
+              </p>
               <input
                 type="range"
                 aria-label="Bet amount slider"
@@ -371,21 +468,31 @@ export default function Table() {
                   {legal.check
                     ? "Check"
                     : legal.call !== null
-                      ? `Call ${legal.call}`
+                      ? `Call ${legal.call}${legal.call === hero.stack ? " · All in" : ""}`
                       : "Call"}
                 </AnimatedButton>
                 <AnimatedButton
-                  disabled={!canAct || !range || (sizing && !valid)}
-                  aria-expanded={sizing}
-                  onClick={() => (sizing ? confirm() : setSizing(true))}
+                  disabled={
+                    !canAct || (!range && !legal.allIn) || (sizing && !valid)
+                  }
+                  aria-expanded={range ? sizing : undefined}
+                  onClick={() =>
+                    !range && legal.allIn
+                      ? void action({ type: "ALL_IN" })
+                      : sizing
+                        ? confirm()
+                        : setSizing(true)
+                  }
                 >
-                  {sizing && range
-                    ? amount === range.maxTo
-                      ? `All in ${amount}`
-                      : `${view.currentBet === 0 ? "Bet" : "Raise to"} ${amount}`
-                    : view.currentBet === 0
-                      ? "Bet…"
-                      : "Raise…"}
+                  {!range && legal.allIn
+                    ? `All in ${legal.allIn.to}`
+                    : sizing && range
+                      ? amount === range.maxTo
+                        ? `All in ${amount}`
+                        : `${view.currentBet === 0 ? "Bet" : "Raise to"} ${amount}`
+                      : view.currentBet === 0
+                        ? "Bet…"
+                        : "Raise…"}
                 </AnimatedButton>
               </>
             )}

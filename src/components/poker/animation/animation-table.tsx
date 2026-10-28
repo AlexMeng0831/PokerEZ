@@ -56,7 +56,7 @@ function AnimatedSeat({
             }
           : undefined
       }
-      className={`preview-seat seat-${player.id} ${player.folded ? "seat-folded" : ""}`}
+      className={`preview-seat ${hero ? "hero-seat-live" : ""} seat-${player.id} ${player.folded ? "seat-folded" : ""}`}
     >
       <div className="preview-hole-cards">
         {[0, 1].map((i) => (
@@ -121,6 +121,15 @@ function AnimatedSeat({
         </span>
         <div>
           <strong>
+            {player.connected !== undefined && (
+              <span
+                className={`seat-presence ${player.connected ? "online" : "offline"}`}
+                aria-label={
+                  player.connected ? "Online" : "Offline · seat reserved"
+                }
+                title={player.connected ? "Online" : "Offline · seat reserved"}
+              />
+            )}
             {player.name}
             {hero && <small> · your seat</small>}
           </strong>
@@ -188,7 +197,7 @@ export function AnimationTable<Id extends string>({
     : [];
   return (
     <DomAnchorProvider
-      className={`preview-stage panel table-count-${state.players.length}`}
+      className={`preview-stage panel table-count-${state.players.length} phase-${phase}`}
     >
       <div className="preview-stage-top">
         <span>
@@ -208,6 +217,7 @@ export function AnimationTable<Id extends string>({
         <DomAnchor id="pot" className="preview-pot-anchor">
           <PotDisplay
             amount={state.pot}
+            pending={state.players.reduce((n, p) => n + p.bet, 0)}
             pots={state.pots}
             reduced={reduced}
             names={Object.fromEntries(state.players.map((p) => [p.id, p.name]))}

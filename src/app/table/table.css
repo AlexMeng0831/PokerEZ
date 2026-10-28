@@ -708,3 +708,289 @@
     display: block;
   }
 }
+
+/* Table utilities stay accessible in focus mode; only the action dock can scroll. */
+.focus-actions,
+.table-utilities {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.focus-actions .button {
+  min-width: 34px;
+}
+.seat-presence {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.seat-presence.online,
+.room-roster i.online {
+  background: var(--green);
+}
+.seat-presence.offline,
+.room-roster i.offline {
+  background: var(--muted);
+}
+.room-roster {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-bottom: 14px;
+}
+.room-roster p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  font-size: 11px;
+  margin-bottom: 10px;
+}
+.room-roster p span {
+  color: var(--muted);
+}
+.room-roster ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.room-roster li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
+}
+.room-roster li strong {
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.room-roster li span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.room-roster i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.hand-result {
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-bottom: 14px;
+  padding-top: 10px;
+}
+.hand-result summary {
+  cursor: pointer;
+  padding: 4px 0;
+  font-weight: 600;
+}
+.hand-result ul {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.hand-result li {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  font-size: 11px;
+}
+.hand-result li span {
+  color: var(--green);
+}
+.bet-range-note {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0;
+  line-height: 1.5;
+}
+.turn-clock {
+  color: var(--text);
+  font-size: 12px;
+}
+.multiplayer-page .table-focus-active .table-dock {
+  max-height: 44dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.poker-help {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+}
+.poker-help h3 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+.poker-help h3 small {
+  margin-left: 10px;
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.poker-help p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--muted);
+  margin: 8px 0;
+}
+.poker-help p strong {
+  color: var(--text);
+}
+.poker-help ol {
+  padding-left: 23px;
+  margin: 0;
+}
+.poker-help li {
+  padding: 4px 0;
+  font-size: 12px;
+}
+.poker-help li strong {
+  display: inline-block;
+  min-width: 125px;
+}
+.poker-help li span {
+  font-size: 11px;
+  color: var(--muted);
+}
+@media (max-width: 680px) {
+  .focus-actions {
+    gap: 5px;
+  }
+  .multiplayer-page .focus-toolbar small {
+    display: none;
+  }
+  .rehearsal-toolbar {
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .rehearsal-room {
+    flex: 1;
+    min-width: 0;
+  }
+  .rehearsal-room strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 120px;
+  }
+  .multiplayer-page .preview-seat-label strong {
+    font-size: 11px;
+  }
+  .multiplayer-page .preview-seat-label [data-anchor] {
+    font-size: 11px;
+  }
+  .multiplayer-page .table-count-4 .preview-seat-label strong,
+  .multiplayer-page .table-count-5 .preview-seat-label strong,
+  .multiplayer-page .table-count-6 .preview-seat-label strong {
+    font-size: 10px;
+  }
+  .room-roster li {
+    flex: 1 0 42%;
+    padding: 7px;
+  }
+  .room-roster li span {
+    margin-left: auto;
+    font-size: 9px;
+  }
+  .turn-clock {
+    font-size: 11px;
+  }
+  .hand-result li {
+    font-size: 10px;
+  }
+  .poker-help li strong {
+    min-width: 112px;
+  }
+  .poker-help li span {
+    display: block;
+  }
+}
+
+@media (max-width: 680px) {
+  .is-waiting .rehearsal-table .preview-stage {
+    height: 420px;
+  }
+  .is-waiting .table-welcome {
+    width: 62%;
+    padding: 12px 8px;
+    gap: 8px;
+    border-radius: 10px;
+  }
+  .is-waiting .table-welcome > svg {
+    display: none;
+  }
+  .is-waiting .table-welcome strong {
+    font-size: 13px;
+  }
+  .is-waiting .table-welcome > span:not(.welcome-spade) {
+    font-size: 9px;
+  }
+  .is-waiting .room-code-share {
+    font-size: 18px;
+    padding: 8px 12px;
+    letter-spacing: 2px;
+  }
+}
+
+.pot-pending {
+  display: block;
+  color: #d9eee7;
+  font-size: 9px;
+  margin-top: 5px;
+}
+@media (max-width: 680px) {
+  .multiplayer-page .hero-seat-live .preview-card-slot {
+    --preview-card-w: 34px !important;
+    --preview-card-h: 48px !important;
+  }
+  .multiplayer-page .hero-seat-live .playing-card > span {
+    font-size: 14px;
+  }
+  .multiplayer-page .hero-seat-live .playing-card i {
+    font-size: 19px;
+  }
+  .multiplayer-page .seat-bet-compact {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-height: 760px) and (min-width: 681px) {
+  .multiplayer-page .preview-pot-anchor {
+    height: 60px;
+    min-height: 60px;
+    margin-bottom: 8px;
+  }
+  .multiplayer-page .preview-seat-label .player-best-hand {
+    font-size: 9px;
+  }
+}
+
+/* Once settled, payouts replace stale action labels. Keep the deck anchor measurable. */
+.multiplayer-page .phase-finished .seat-action:not(.winner-action) {
+  visibility: hidden;
+}
+@media (max-width: 680px) {
+  .multiplayer-page .table-count-6 .preview-deck {
+    display: block;
+  }
+  .multiplayer-page .preview-seat-label strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

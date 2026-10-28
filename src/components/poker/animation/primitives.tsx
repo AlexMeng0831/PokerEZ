@@ -202,14 +202,22 @@ export function PotDisplay({
   pots = [],
   reduced,
   names,
+  pending = 0,
 }: {
   amount: number;
+  pending?: number;
   pots?: Pot[];
   names?: Record<string, string>;
   reduced: boolean;
 }) {
   return (
-    <SidePotLabels pots={pots} total={amount} reduced={reduced} names={names} />
+    <SidePotLabels
+      pots={pots}
+      total={amount}
+      reduced={reduced}
+      names={names}
+      pending={pending}
+    />
   );
 }
 export function SidePotLabels({
@@ -217,9 +225,11 @@ export function SidePotLabels({
   total,
   reduced,
   names,
+  pending = 0,
 }: {
   pots: Pot[];
   total: number;
+  pending?: number;
   names?: Record<string, string>;
   reduced: boolean;
 }) {
@@ -234,11 +244,16 @@ export function SidePotLabels({
         className="pot-main-tile"
         transition={{ type: "spring", stiffness: 270, damping: 26 }}
       >
-        <span>{main?.label ?? "Total pot"}</span>
+        <span>
+          {main?.label ?? (pending > 0 ? "Collected pot" : "Total pot")}
+        </span>
         <strong>
           <AnimatedAmount value={main?.amount ?? total} reduced={reduced} />
           <small> chips</small>
         </strong>
+        {pending > 0 && (
+          <small className="pot-pending">+{pending} in current bets</small>
+        )}
         {main && (
           <small className="pot-eligible">
             {main.eligible

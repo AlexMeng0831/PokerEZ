@@ -30,7 +30,8 @@ let bootstrap: Promise<void> | null = null;
 let sending = false;
 async function connectGuest(): Promise<void> {
   if (socket) {
-    socket.connect();
+    if (socket.connected) socket.emit("room:sync");
+    else socket.connect();
     return;
   }
   if (bootstrap) return bootstrap;
@@ -85,11 +86,18 @@ async function connectGuest(): Promise<void> {
           void connectGuest();
         }
       });
-      next.on("session:ready", (data) =>
-        useRoomStore.setState({ session: data }),
-      );
+      next.on("session:ready", (data) => {
+        useRoomStore.setState({ session: data });
+        if (!data.roomCode) {
+          useRoomStore.setState({ snapshot: null });
+          usePokerStore.getState().leave();
+        }
+      });
       next.on("room:left", () => {
-        useRoomStore.setState({ snapshot: null });
+        useRoomStore.setState((state) => ({
+          snapshot: null,
+          session: state.session ? { ...state.session, roomCode: null } : null,
+        }));
         usePokerStore.getState().leave();
       });
       next.on("room:state", (data) => {
@@ -97,14 +105,12 @@ async function connectGuest(): Promise<void> {
         if (old?.room.code === data.room.code && old.version > data.version)
           return;
         useRoomStore.setState({ snapshot: data, error: "" });
-        usePokerStore
-          .getState()
-          .setRoom({
-            code: data.room.code,
-            name: data.room.name,
-            seats: data.room.capacity,
-            blinds: `${data.room.smallBlind} / ${data.room.bigBlind}`,
-          });
+        usePokerStore.getState().setRoom({
+          code: data.room.code,
+          name: data.room.name,
+          seats: data.room.capacity,
+          blinds: `${data.room.smallBlind} / ${data.room.bigBlind}`,
+        });
       });
       next.connect();
     } catch (error) {
@@ -141,6 +147,7 @@ export async function sendCommand(input: CommandInput): Promise<Ack> {
       error instanceof Error
         ? error.message
         : "Your request could not be confirmed. Reconnect to sync the table.";
+    socket?.emit("room:sync");
     useRoomStore.setState({ error: message });
     throw new Error(message);
   } finally {

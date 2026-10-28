@@ -34,5 +34,6 @@ export type TablePresentation = {
   positions?: Record<string, SeatPosition>;
   handId?: string;
   handLabel?: string;
+  phase?: string;
 };
 export const visualKey = (c: VisualCard) => `${c.rank}${c.suit}`;
