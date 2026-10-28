@@ -11,7 +11,6 @@ import {
   Users,
   ChevronRight,
   Check,
-  Play as PlayIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -69,17 +68,22 @@ export default function Play() {
             Make poker <span>EZ.</span>
           </h1>
           <p>
-            Your seat at the table starts here. <br />
-            Play with friends, learn the ropes, and enjoy the game.
+            Create a room, share the code, and play with friends. <br />
+            2–6 players. No account needed.
           </p>
           <div className="hero-quick-play">
-            <Button asChild>
-              <Link href="/preview">
-                <PlayIcon size={15} fill="currentColor" /> Try the demo{" "}
-                <ArrowRight size={16} />
-              </Link>
+            {connection.snapshot ? (
+              <Button asChild>
+                <Link href="/table">Return to Table <ArrowRight size={16} /></Link>
+              </Button>
+            ) : (
+              <Button onClick={() => setOpen(true)}>
+                <Plus size={17} /> Create Room
+              </Button>
+            )}
+            <Button variant="outline" asChild>
+              <a href="#join-room"><Link2 size={16} /> Join Room</a>
             </Button>
-            <span>Solo preview · no setup</span>
           </div>
           <div className="hero-meta">
             <span>
@@ -105,19 +109,6 @@ export default function Play() {
           </div>
         </div>
       </section>
-      {connection.snapshot && (
-        <div className="resume-room panel">
-          <span>
-            Your seat is saved in{" "}
-            <strong>{connection.snapshot.room.name}</strong>.
-          </span>
-          <Button asChild size="sm">
-            <Link href="/table">
-              Return to table <ArrowRight size={15} />
-            </Link>
-          </Button>
-        </div>
-      )}
       <section className="room-grid" aria-label="Play options">
         <div className="panel room-card">
           <div className="room-card-top">
@@ -135,17 +126,18 @@ export default function Play() {
             onClick={() => setOpen(true)}
             disabled={
               connection.pending ||
-              connection.status !== "connected" ||
               !!connection.snapshot
             }
           >
             Create Room <ArrowRight size={17} />
           </Button>
           <span className="card-footnote">
-            Set up in seconds. No account needed.
+            {connection.snapshot
+              ? "You already have a seat. Return to your table, then leave between hands to create another room."
+              : "Set up in seconds. No account needed."}
           </span>
         </div>
-        <div className="panel room-card join-card">
+        <div className="panel room-card join-card" id="join-room">
           <div className="room-card-top">
             <span className="icon-box">
               <Link2 size={23} />
@@ -193,6 +185,7 @@ export default function Play() {
               className={error ? "form-error" : "card-footnote"}
             >
               {error ||
+                (connection.snapshot ? "You already have a seat. Return to your table to keep playing." : "") ||
                 connection.error ||
                 (connection.status !== "connected"
                   ? "Connecting your guest session…"
@@ -296,7 +289,7 @@ export default function Play() {
         open={open}
         onOpenChange={setOpen}
         title="Your table, your way."
-        description="Choose your table settings and share the code with friends."
+        description="Create a multiplayer room and invite friends with its room code."
       >
         <form
           onSubmit={(e) => {
@@ -340,6 +333,11 @@ export default function Play() {
           <div className="info-note">
             <Check size={16} /> No real money. Just a friendly practice space.
           </div>
+          {connection.status !== "connected" && (
+            <p className="form-error" role="status">
+              {connection.error || "Connecting to the multiplayer server…"}
+            </p>
+          )}
           {error && (
             <p className="form-error" role="alert">
               {error}

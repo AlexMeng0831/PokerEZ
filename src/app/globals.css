@@ -2563,3 +2563,11 @@ footer {
   .hero-quick-play { gap:10px; flex-wrap:wrap; }
   .hero-quick-play > span { font-size:9px; }
 }
+
+/* Keep the real room actions in the first view. */
+.play-page .hero { min-height: 280px; padding-top: 34px; padding-bottom: 32px; }
+#join-room { scroll-margin-top: 24px; }
+@media (max-width: 680px) {
+  .play-page .hero { min-height: unset; padding-top: 28px; padding-bottom: 24px; }
+  .hero-quick-play .button { flex: 1; }
+}
