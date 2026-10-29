@@ -40,12 +40,19 @@ export function DomAnchorProvider({
   const root = useRef<HTMLDivElement>(null);
   const nodes = useRef(new Map<AnchorId, HTMLDivElement>());
   const callbacks = useRef(new Map<AnchorId, RefCallback<HTMLDivElement>>());
+  const resizeObserver = useRef<ResizeObserver | null>(null);
+  const scheduleMeasure = useRef<() => void>(() => {});
   const [rects, setRects] = useState<Registry["rects"]>({});
   const register = useCallback((id: AnchorId) => {
     if (!callbacks.current.has(id))
       callbacks.current.set(id, (node) => {
-        if (node) nodes.current.set(id, node);
-        else nodes.current.delete(id);
+        const prior = nodes.current.get(id);
+        if (prior) resizeObserver.current?.unobserve(prior);
+        if (node) {
+          nodes.current.set(id, node);
+          resizeObserver.current?.observe(node);
+        } else nodes.current.delete(id);
+        scheduleMeasure.current();
       });
     return callbacks.current.get(id)!;
   }, []);
@@ -72,7 +79,9 @@ export function DomAnchorProvider({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(measure);
     };
+    scheduleMeasure.current = schedule;
     const observer = new ResizeObserver(schedule);
+    resizeObserver.current = observer;
     if (root.current) observer.observe(root.current);
     nodes.current.forEach((node) => observer.observe(node));
     measure();
@@ -80,6 +89,8 @@ export function DomAnchorProvider({
     window.addEventListener("scroll", schedule, true);
     return () => {
       observer.disconnect();
+      resizeObserver.current = null;
+      scheduleMeasure.current = () => {};
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);

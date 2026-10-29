@@ -1,14 +1,35 @@
 "use client";
 import Link from "next/link";
+import { useEffect } from "react";
+import {
+  refreshRoomMembership,
+  useMultiplayer,
+} from "@/lib/multiplayer/client";
+import { resumableRoom } from "@/lib/multiplayer/resume-room";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Moon, Sun, Spade, ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 export function Header() {
   const path = usePathname();
+  const connection = useMultiplayer();
+  const room = resumableRoom(connection);
+  const showResume = !!room && path !== "/table";
+  useEffect(() => {
+    const sync = () => {
+      if (document.visibilityState !== "hidden") void refreshRoomMembership();
+    };
+    void refreshRoomMembership();
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [path]);
   const { resolvedTheme, setTheme } = useTheme();
   return (
-    <header className="header">
+    <header className={`header ${showResume ? "has-active-room" : ""}`}>
       <Link href="/" className="brand">
         <Spade fill="currentColor" size={28} />
         <span>
@@ -35,9 +56,19 @@ export function Header() {
         ))}
       </nav>
       <div className="header-actions">
-        <Link href="/preview" className="local-badge">
-          <i /> Animation preview
-        </Link>
+        {showResume ? (
+          <Button asChild size="sm" className="resume-game">
+            <Link href="/table" title={`Return to ${room.name}`}>
+              Resume Game <ArrowUpRight size={14} />
+            </Link>
+          </Button>
+        ) : (
+          !connection.snapshot && (
+            <Link href="/preview" className="local-badge">
+              <i /> Animation preview
+            </Link>
+          )
+        )}
         <Button
           variant="ghost"
           size="icon"

@@ -1,3 +1,6 @@
+.is-complete .table-focus-active .dock-topline {
+  display: none;
+}
 .rehearsal-page {
   padding-top: 20px;
 }
@@ -5,101 +8,100 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .rehearsal-room {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
   font-size: 12px;
+}
+.rehearsal-room strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .rehearsal-room button {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--muted);
-  background: none;
   border: 0;
-  font-size: 10px;
+  background: none;
   padding: 8px;
+  color: var(--muted);
+  font-size: 12px;
 }
 .rehearsal-table {
-  position: relative;
   min-width: 0;
 }
-.rehearsal-table .preview-stage {
-  height: 570px;
+.multiplayer-page .table-focus-active .rehearsal-table {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
-.rehearsal-table .preview-stage-top {
-  font-size: 11px;
-}
-.rehearsal-table .preview-seat {
-  width: 176px;
-}
-.rehearsal-table .preview-seat-label strong {
-  font-size: 13px;
-}
-.rehearsal-table .preview-seat-label [data-anchor] {
-  font-size: 13px;
-}
-.rehearsal-table .player-best-hand {
-  font-size: 10px;
-  line-height: 1.4;
-}
-.rehearsal-table .seat-action {
-  font-size: 10px;
+.multiplayer-page .table-focus-active .poker-surface {
+  min-height: 100%;
 }
 .table-welcome {
-  position: absolute;
-  z-index: 8;
-  left: 50%;
-  top: 48%;
-  transform: translate(-50%, -50%);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 13px;
-  padding: 24px 32px;
-  width: min(380px, 85%);
-  text-align: center;
-  border: 1px solid #ffffff28;
-  border-radius: 16px;
-  background: #104e42;
-  color: #fff;
-  box-shadow: 0 12px 32px #08281f25;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 14px;
 }
-.table-welcome strong {
-  font-size: 19px;
-  letter-spacing: -0.5px;
+.table-welcome > svg {
+  color: var(--blue);
+  width: 18px;
 }
-.table-welcome > span:not(.welcome-spade) {
-  font-size: 11px;
-  color: #c8ddd6;
+.table-welcome > span {
+  color: var(--muted);
 }
-.welcome-spade {
-  color: #b6dccc;
+.table-welcome > span:last-child {
+  flex-basis: 100%;
 }
-.table-welcome .button {
-  margin-top: 4px;
-  min-width: 175px;
+.room-code-share {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--soft);
+  color: var(--blue);
+  padding: 7px 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
 }
 .table-dock {
-  padding: 20px 24px 14px;
-  margin-top: 16px;
+  padding: 16px 18px 12px;
+  margin-top: 12px;
   flex-shrink: 0;
+}
+.multiplayer-page .table-focus-active .table-dock {
+  margin: 0;
+  max-height: 45dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.table-focus-active .dock-status p,
+.table-focus-active .dock-footnote {
+  display: none;
 }
 .dock-topline {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 18px;
-  margin-bottom: 18px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 .dock-status {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 .dock-status strong {
@@ -108,30 +110,37 @@
 }
 .dock-status p {
   font-size: 11px;
-  margin-top: 5px;
+  margin-top: 4px;
 }
 .status-light {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   flex-shrink: 0;
-  background: var(--muted);
   border-radius: 50%;
+  background: var(--muted);
 }
 .status-light.your-turn {
   background: var(--blue);
-  box-shadow: 0 0 0 5px var(--soft);
+  box-shadow: 0 0 0 4px var(--soft);
+}
+.turn-clock {
+  display: inline-block;
+  margin-left: 10px;
+  font-size: 12px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 .street-progress {
   display: flex;
   list-style: none;
-  margin: 0;
   padding: 0;
-  gap: 18px;
+  margin: 0;
+  gap: 14px;
 }
 .street-progress li {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-size: 10px;
   color: var(--muted);
   white-space: nowrap;
@@ -152,10 +161,10 @@
 .dock-actions {
   display: grid;
   grid-template-columns: 1fr 1.3fr 1.3fr;
-  gap: 12px;
+  gap: 10px;
 }
 .dock-actions > .button {
-  min-height: 50px;
+  min-height: 48px;
   font-size: 15px;
 }
 .dock-actions > .button:only-child {
@@ -167,585 +176,117 @@
 .dock-footnote {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 10px;
+  font-size: 10px;
+  margin-top: 10px;
   color: var(--muted);
-  font-size: 9px;
 }
 .dock-footnote button {
-  border: 0;
   background: none;
+  border: 0;
   color: var(--blue);
-  padding: 0;
-  font-size: 10px;
 }
 .bet-sizing {
-  overflow: hidden;
+  padding: 12px 0 0;
+  margin-bottom: 8px;
+  border-top: 1px solid var(--border);
 }
 .bet-presets {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding-top: 2px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .bet-presets label {
-  color: var(--muted);
   font-size: 12px;
+  color: var(--muted);
 }
-.bet-presets strong {
-  color: var(--text);
-  margin-left: 8px;
+.bet-presets input[type="number"] {
+  width: 110px;
+  font-size: 16px;
+  min-height: 44px;
+  padding: 8px;
+  font-variant-numeric: tabular-nums;
 }
 .bet-presets > div {
   display: flex;
-  gap: 7px;
+  gap: 6px;
+  margin-left: auto;
 }
 .bet-presets button {
-  border: 1px solid var(--border);
-  background: var(--alt);
-  border-radius: 6px;
   min-width: 48px;
-  min-height: 32px;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--alt);
   font-size: 12px;
+  padding: 6px;
 }
-.bet-presets button[aria-pressed="true"] {
-  color: var(--blue);
-  background: var(--soft);
+.bet-presets button:hover {
   border-color: var(--blue);
+  color: var(--blue);
+}
+.bet-range-note {
+  margin: 8px 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
 }
 .bet-sizing input[type="range"] {
   width: 100%;
+  margin: 0 0 6px;
   padding: 0;
+  min-height: 28px;
   border: 0;
   box-shadow: none;
-  margin: 6px 0 12px;
-  height: 24px;
-  min-height: 24px;
   accent-color: var(--blue);
-  cursor: pointer;
-}
-.turn-tag {
-  position: absolute;
-  right: 8px;
-  top: -8px;
-  background: var(--blue);
-  color: var(--surface);
-  padding: 3px 6px;
-  font-size: 7px;
-  letter-spacing: 0.6px;
-  border-radius: 4px;
-}
-.preview-seat-label.is-turn {
-  border-color: var(--blue);
-  outline: 2px solid var(--soft);
-  outline-offset: 3px;
-}
-.rehearsal-page .table-focus-active {
-  max-width: none;
-}
-.rehearsal-page .table-focus-active .rehearsal-table {
-  flex: 1;
-  min-height: 0;
-}
-.rehearsal-page .table-focus-active .preview-stage {
-  height: 100% !important;
-  min-height: 0;
-}
-.rehearsal-page .table-focus-active .table-dock {
-  margin: 0;
-}
-@media (max-width: 680px) {
-  .rehearsal-page {
-    padding-top: 12px;
-  }
-  .rehearsal-toolbar {
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .rehearsal-toolbar > .button {
-    font-size: 10px;
-    padding: 8px;
-  }
-  .rehearsal-room {
-    flex: 1;
-    justify-content: center;
-  }
-  .rehearsal-room strong {
-    display: none;
-  }
-  .rehearsal-table .preview-stage {
-    height: 590px;
-  }
-  .rehearsal-table .preview-stage-top {
-    font-size: 8px;
-  }
-  .rehearsal-table .preview-seat {
-    width: 130px;
-  }
-  .rehearsal-table .preview-seat-label strong {
-    font-size: 11px;
-  }
-  .rehearsal-table .preview-seat-label [data-anchor] {
-    font-size: 11px;
-  }
-  .rehearsal-table .player-best-hand {
-    font-size: 8px;
-  }
-  .rehearsal-table .seat-action {
-    font-size: 8px;
-  }
-  .table-welcome {
-    padding: 20px;
-    gap: 10px;
-  }
-  .table-welcome strong {
-    font-size: 16px;
-  }
-  .table-dock {
-    padding: 14px 12px 12px;
-  }
-  .dock-topline {
-    flex-direction: column-reverse;
-    align-items: stretch;
-    gap: 12px;
-    margin-bottom: 13px;
-  }
-  .street-progress {
-    justify-content: center;
-    gap: 18px;
-  }
-  .street-progress li {
-    font-size: 9px;
-  }
-  .dock-status {
-    gap: 9px;
-  }
-  .dock-status strong {
-    font-size: 12px;
-  }
-  .dock-status p {
-    font-size: 10px;
-    margin-top: 4px;
-  }
-  .dock-actions {
-    gap: 7px;
-    grid-template-columns: 0.8fr 1fr 1.2fr;
-  }
-  .dock-actions > .button {
-    min-height: 46px;
-    font-size: 13px;
-    padding: 10px 8px;
-  }
-  .dock-footnote {
-    font-size: 7px;
-    margin-top: 10px;
-  }
-  .dock-footnote > span:last-child {
-    display: none;
-  }
-  .rehearsal-page .table-focus-active .preview-deck {
-    top: 61%;
-    left: 13%;
-  }
-  .rehearsal-page .table-focus-active .preview-center {
-    top: 51%;
-  }
-}
-@media (max-height: 760px) {
-  .rehearsal-page .table-focus-active .preview-stage {
-    --preview-card-w: 32px;
-    --preview-card-h: 44px;
-  }
-  .rehearsal-page .table-focus-active .preview-board .preview-card-slot {
-    --preview-card-w: 34px;
-    --preview-card-h: 48px;
-  }
-  .rehearsal-page .table-focus-active .preview-seat-label {
-    min-height: 50px;
-    padding: 6px 9px;
-  }
-  .rehearsal-page .table-focus-active .preview-seat .player-best-hand {
-    font-size: 7px;
-  }
-  .rehearsal-page .table-focus-active .seat-alex,
-  .rehearsal-page .table-focus-active .seat-sam {
-    top: 9%;
-  }
-  .rehearsal-page .table-focus-active .preview-pot-anchor {
-    transform: scale(0.82);
-    margin-bottom: 0;
-    height: 56px;
-    min-height: 56px;
-  }
-  .rehearsal-page .table-focus-active .preview-center {
-    top: 52%;
-  }
-  .rehearsal-page .table-focus-active .preview-phase {
-    margin-top: 6px;
-  }
-  .rehearsal-page .table-focus-active .table-dock {
-    padding: 12px;
-  }
-  .rehearsal-page .table-focus-active .dock-topline {
-    margin-bottom: 10px;
-    gap: 8px;
-  }
-  .rehearsal-page .table-focus-active .dock-status p {
-    display: none;
-  }
-  .rehearsal-page .table-focus-active .bet-sizing input[type="range"] {
-    margin: 2px 0 7px;
-  }
-  .rehearsal-page .table-focus-active .bet-alex,
-  .rehearsal-page .table-focus-active .bet-sam {
-    top: 39%;
-  }
-  .rehearsal-page .table-focus-active .bet-you {
-    bottom: 29%;
-  }
-}
-@media (max-height: 480px) and (orientation: landscape) {
-  .rehearsal-page .table-focus-active {
-    overflow-y: auto;
-  }
-  .rehearsal-page .table-focus-active .rehearsal-table {
-    min-height: 350px;
-    flex: none;
-  }
-  .rehearsal-page .table-focus-active .preview-stage {
-    min-height: 350px;
-  }
-}
-/* Keep the cards comfortably readable on wider, shorter laptop screens. */
-@media (min-width: 681px) and (min-height: 600px) {
-  .rehearsal-page .table-focus-active .preview-stage {
-    --preview-card-w: 44px;
-    --preview-card-h: 61px;
-  }
-  .rehearsal-page .table-focus-active .preview-board .preview-card-slot {
-    --preview-card-w: 48px;
-    --preview-card-h: 67px;
-  }
-  .rehearsal-page .table-focus-active .preview-pot-anchor {
-    transform: none;
-  }
-  .rehearsal-page .table-focus-active .preview-seat .player-best-hand {
-    font-size: 10px;
-  }
-  .rehearsal-page .table-focus-active .preview-seat-label {
-    padding: 9px 12px;
-  }
-}
-@media (max-width: 680px) {
-  .rehearsal-page .table-focus-active .preview-deck {
-    left: 8%;
-    top: 64%;
-  }
-}
-@media (max-width: 680px) and (max-height: 760px) {
-  .rehearsal-page .table-focus-active .preview-center {
-    top: 49%;
-  }
-}
-@media (min-width: 681px) and (max-height: 760px) {
-  .rehearsal-page .table-focus-active .preview-center {
-    top: 45%;
-  }
-}
-@media (max-width: 680px) and (max-height: 760px) {
-  .rehearsal-page .table-focus-active .preview-phase {
-    visibility: hidden;
-  }
-}
-@media (min-width: 681px) and (max-height: 650px) {
-  .rehearsal-page .table-focus-active {
-    overflow-y: auto;
-  }
-  .rehearsal-page .table-focus-active .rehearsal-table {
-    flex: none;
-    min-height: 430px;
-  }
-  .rehearsal-page .table-focus-active .preview-stage {
-    min-height: 430px;
-  }
 }
 .connection-empty {
-  max-width: 480px;
-  margin: 70px auto;
-  padding: 36px;
   display: grid;
   justify-items: center;
-  gap: 20px;
+  gap: 18px;
+  max-width: 480px;
+  margin: 60px auto;
+  padding: 30px;
   text-align: center;
 }
 .connection-empty > svg {
   color: var(--blue);
 }
-.resume-room {
+.connection-message {
   display: flex;
-  justify-content: space-between;
-  gap: 16px;
   align-items: center;
-  padding: 15px 20px;
-  margin-bottom: 18px;
+  gap: 8px;
+  margin-top: 10px;
   font-size: 12px;
   color: var(--muted);
 }
-.room-code-share {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #ffffff12;
-  border: 1px solid #ffffff30;
-  border-radius: 8px;
-  color: white;
-  font-size: 24px;
-  font-weight: 650;
-  letter-spacing: 4px;
-  padding: 10px 18px;
-}
-.multiplayer-page .bet-presets input[type="number"] {
-  width: 120px;
-  min-height: 34px;
-  padding: 6px 10px;
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-}
-.seat-role {
-  position: absolute;
-  left: -7px;
-  top: -8px;
-  width: 20px;
-  height: 20px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  font-size: 8px;
-  font-weight: 700;
-  color: var(--blue);
-}
-.connection-message {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 10px;
-}
 .connection-message button {
   margin-left: auto;
-  background: none;
   border: 0;
+  background: none;
   color: var(--blue);
 }
-.multiplayer-page .pot-split-display {
-  flex-wrap: wrap;
-  gap: 4px;
-  align-content: center;
-}
-.multiplayer-page .is-split .pot-main-tile,
-.multiplayer-page .is-split .pot-side-tile {
-  width: 76px;
-  padding: 5px 4px;
-  flex-shrink: 1;
-}
-.multiplayer-page .is-split strong {
-  font-size: 18px;
-}
-.multiplayer-page .is-split .pot-eligible {
-  max-width: 65px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 5px;
-  margin-top: 4px;
-}
-.multiplayer-page .is-split .pot-main-tile > span,
-.multiplayer-page .is-split .pot-side-tile > span {
-  font-size: 6px;
-  letter-spacing: 0.4px;
-  margin-bottom: 4px;
-}
-.multiplayer-page .table-count-4 .preview-seat,
-.multiplayer-page .table-count-5 .preview-seat,
-.multiplayer-page .table-count-6 .preview-seat {
-  width: 145px;
-}
-.multiplayer-page .preview-seat-label .player-best-hand {
-  line-height: 1.3;
-}
-.multiplayer-page .preview-seat-label strong {
-  overflow-wrap: anywhere;
-}
-@media (max-width: 680px) {
-  .resume-room {
-    font-size: 10px;
-    padding: 12px;
-    gap: 10px;
-  }
-  .multiplayer-page .bet-presets {
-    gap: 6px;
-  }
-  .multiplayer-page .bet-presets label {
-    font-size: 10px;
-  }
-  .multiplayer-page .bet-presets input[type="number"] {
-    width: 70px;
-    font-size: 13px;
-  }
-  .multiplayer-page .bet-presets button {
-    min-width: 40px;
-    font-size: 9px;
-    padding: 4px;
-  }
-  .multiplayer-page .bet-presets > div {
-    gap: 4px;
-  }
-  .multiplayer-page .table-count-4 .preview-seat,
-  .multiplayer-page .table-count-5 .preview-seat,
-  .multiplayer-page .table-count-6 .preview-seat {
-    width: 100px;
-  }
-  .multiplayer-page .table-count-4 .preview-seat-label,
-  .multiplayer-page .table-count-5 .preview-seat-label,
-  .multiplayer-page .table-count-6 .preview-seat-label {
-    padding: 6px;
-    gap: 5px;
-    min-height: 45px;
-  }
-  .multiplayer-page .table-count-4 .preview-seat-label .avatar,
-  .multiplayer-page .table-count-5 .preview-seat-label .avatar,
-  .multiplayer-page .table-count-6 .preview-seat-label .avatar {
-    display: none;
-  }
-  .multiplayer-page .table-count-4 .preview-seat-label strong,
-  .multiplayer-page .table-count-5 .preview-seat-label strong,
-  .multiplayer-page .table-count-6 .preview-seat-label strong {
-    font-size: 9px;
-  }
-  .multiplayer-page .table-count-4,
-  .multiplayer-page .table-count-5,
-  .multiplayer-page .table-count-6 {
-    --preview-card-w: 26px !important;
-    --preview-card-h: 37px !important;
-  }
-  .multiplayer-page .table-count-6 .preview-deck {
-    display: none;
-  }
-  .multiplayer-page .table-count-6 .preview-center {
-    top: 49% !important;
-  }
-  .multiplayer-page .table-count-6 .preview-board .preview-card-slot {
-    --preview-card-w: 30px !important;
-    --preview-card-h: 43px !important;
-  }
-  .multiplayer-page .preview-pot-anchor {
-    width: 220px;
-  }
-  .multiplayer-page .is-split .pot-main-tile,
-  .multiplayer-page .is-split .pot-side-tile {
-    width: 66px;
-  }
-  .multiplayer-page .is-split strong {
-    font-size: 15px;
-  }
-  .multiplayer-page .preview-seat-label .player-best-hand {
-    font-size: 7px;
-  }
-  .multiplayer-page .table-count-6 .player-best-hand {
-    display: none;
-  }
-}
-.seat-bet-compact {
-  display: none;
-}
-.turn-clock {
-  display: inline-block;
-  margin-left: 12px;
-  font-size: 10px;
-  color: var(--muted);
-  font-variant-numeric: tabular-nums;
-}
-.multiplayer-page .many-pots .pot-eligible {
-  display: none;
-}
-.multiplayer-page .many-pots .pot-main-tile,
-.multiplayer-page .many-pots .pot-side-tile {
-  padding: 3px 4px;
-}
-.multiplayer-page .many-pots strong {
-  font-size: 16px;
-}
-@media (max-width: 680px) {
-  .multiplayer-page .table-count-4 .seat-bet-compact,
-  .multiplayer-page .table-count-5 .seat-bet-compact,
-  .multiplayer-page .table-count-6 .seat-bet-compact {
-    display: block;
-    color: var(--blue);
-    font-size: 7px;
-    margin-top: 3px;
-  }
-  .multiplayer-page .table-count-4 .bet-chips,
-  .multiplayer-page .table-count-5 .bet-chips,
-  .multiplayer-page .table-count-6 .bet-chips {
-    visibility: hidden;
-  }
-  .turn-clock {
-    font-size: 8px;
-    margin-left: 8px;
-  }
-}
-@media (max-width: 680px) {
-  .multiplayer-page
-    .table-count-6
-    .preview-seat-label.is-inspected
-    .player-best-hand {
-    display: block;
-  }
-}
-
-/* Table utilities stay accessible in focus mode; only the action dock can scroll. */
-.focus-actions,
-.table-utilities {
+.focus-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .focus-actions .button {
+  min-height: 36px;
   min-width: 34px;
-}
-.seat-presence {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin-right: 5px;
-  vertical-align: middle;
-}
-.seat-presence.online,
-.room-roster i.online {
-  background: var(--green);
-}
-.seat-presence.offline,
-.room-roster i.offline {
-  background: var(--muted);
 }
 .room-roster {
   border-top: 1px solid var(--border);
-  padding-top: 12px;
-  margin-bottom: 14px;
+  padding-top: 10px;
+  margin-bottom: 12px;
 }
 .room-roster p {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 16px;
-  font-size: 11px;
-  margin-bottom: 10px;
+  gap: 6px 14px;
+  margin-bottom: 8px;
+  font-size: 12px;
 }
 .room-roster p span {
   color: var(--muted);
@@ -753,20 +294,20 @@
 .room-roster ul {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
   list-style: none;
   padding: 0;
   margin: 0;
+  gap: 6px;
 }
 .room-roster li {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
-  background: var(--bg);
+  gap: 6px;
+  padding: 7px 9px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 11px;
+  border-radius: 7px;
+  background: var(--bg);
+  font-size: 12px;
 }
 .room-roster li strong {
   max-width: 100px;
@@ -775,57 +316,46 @@
   white-space: nowrap;
 }
 .room-roster li span {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
 }
 .room-roster i {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
   flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.room-roster i.online {
+  background: var(--green);
 }
 .hand-result {
-  font-size: 12px;
   border-top: 1px solid var(--border);
-  margin-bottom: 14px;
-  padding-top: 10px;
+  padding-top: 8px;
+  margin-bottom: 10px;
+  font-size: 12px;
 }
 .hand-result summary {
   cursor: pointer;
-  padding: 4px 0;
   font-weight: 600;
+  padding: 4px 0;
 }
 .hand-result ul {
-  margin: 8px 0 0;
-  padding: 0;
   list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 .hand-result li {
   display: flex;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 5px 16px;
-  font-size: 11px;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-size: 12px;
 }
 .hand-result li span {
   color: var(--green);
-}
-.bet-range-note {
-  font-size: 11px;
-  color: var(--muted);
-  margin: 10px 0;
-  line-height: 1.5;
-}
-.turn-clock {
-  color: var(--text);
-  font-size: 12px;
-}
-.multiplayer-page .table-focus-active .table-dock {
-  max-height: 44dvh;
-  overflow-y: auto;
-  overscroll-behavior: contain;
 }
 .poker-help {
   display: grid;
@@ -837,10 +367,10 @@
   margin: 0 0 10px;
 }
 .poker-help h3 small {
-  margin-left: 10px;
   font-size: 10px;
-  color: var(--muted);
   font-weight: 400;
+  color: var(--muted);
+  margin-left: 10px;
 }
 .poker-help p {
   font-size: 12px;
@@ -868,129 +398,79 @@
   color: var(--muted);
 }
 @media (max-width: 680px) {
+  .rehearsal-page {
+    padding-top: 12px;
+  }
+  .rehearsal-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .rehearsal-toolbar > .button {
+    padding: 8px;
+    font-size: 11px;
+    min-height: 40px;
+  }
+  .rehearsal-room {
+    flex: 1;
+    justify-content: center;
+  }
+  .rehearsal-room strong {
+    display: none;
+  }
+  .table-dock {
+    padding: 12px;
+  }
+  .dock-topline {
+    margin-bottom: 10px;
+  }
+  .dock-status strong {
+    font-size: 12px;
+  }
+  .dock-status p,
+  .street-progress {
+    display: none;
+  }
+  .dock-actions {
+    gap: 6px;
+    grid-template-columns: 0.85fr 1.1fr 1.25fr;
+  }
+  .dock-actions > .button {
+    min-height: 46px;
+    padding: 10px 5px;
+    font-size: 13px;
+  }
+  .dock-footnote {
+    font-size: 9px;
+  }
+  .dock-footnote > span:last-child {
+    display: none;
+  }
+  .bet-presets {
+    gap: 6px;
+  }
+  .bet-presets input[type="number"] {
+    width: 80px;
+  }
+  .bet-presets > div {
+    gap: 4px;
+  }
+  .bet-presets button {
+    min-width: 44px;
+    font-size: 11px;
+  }
   .focus-actions {
     gap: 5px;
   }
   .multiplayer-page .focus-toolbar small {
     display: none;
   }
-  .rehearsal-toolbar {
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-  .rehearsal-room {
-    flex: 1;
-    min-width: 0;
-  }
-  .rehearsal-room strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
-  }
-  .multiplayer-page .preview-seat-label strong {
-    font-size: 11px;
-  }
-  .multiplayer-page .preview-seat-label [data-anchor] {
-    font-size: 11px;
-  }
-  .multiplayer-page .table-count-4 .preview-seat-label strong,
-  .multiplayer-page .table-count-5 .preview-seat-label strong,
-  .multiplayer-page .table-count-6 .preview-seat-label strong {
-    font-size: 10px;
-  }
   .room-roster li {
     flex: 1 0 42%;
-    padding: 7px;
   }
   .room-roster li span {
     margin-left: auto;
-    font-size: 9px;
-  }
-  .turn-clock {
-    font-size: 11px;
-  }
-  .hand-result li {
-    font-size: 10px;
-  }
-  .poker-help li strong {
-    min-width: 112px;
   }
   .poker-help li span {
     display: block;
-  }
-}
-
-@media (max-width: 680px) {
-  .is-waiting .rehearsal-table .preview-stage {
-    height: 420px;
-  }
-  .is-waiting .table-welcome {
-    width: 62%;
-    padding: 12px 8px;
-    gap: 8px;
-    border-radius: 10px;
-  }
-  .is-waiting .table-welcome > svg {
-    display: none;
-  }
-  .is-waiting .table-welcome strong {
-    font-size: 13px;
-  }
-  .is-waiting .table-welcome > span:not(.welcome-spade) {
-    font-size: 9px;
-  }
-  .is-waiting .room-code-share {
-    font-size: 18px;
-    padding: 8px 12px;
-    letter-spacing: 2px;
-  }
-}
-
-.pot-pending {
-  display: block;
-  color: #d9eee7;
-  font-size: 9px;
-  margin-top: 5px;
-}
-@media (max-width: 680px) {
-  .multiplayer-page .hero-seat-live .preview-card-slot {
-    --preview-card-w: 34px !important;
-    --preview-card-h: 48px !important;
-  }
-  .multiplayer-page .hero-seat-live .playing-card > span {
-    font-size: 14px;
-  }
-  .multiplayer-page .hero-seat-live .playing-card i {
-    font-size: 19px;
-  }
-  .multiplayer-page .seat-bet-compact {
-    font-size: 9px !important;
-  }
-}
-
-@media (max-height: 760px) and (min-width: 681px) {
-  .multiplayer-page .preview-pot-anchor {
-    height: 60px;
-    min-height: 60px;
-    margin-bottom: 8px;
-  }
-  .multiplayer-page .preview-seat-label .player-best-hand {
-    font-size: 9px;
-  }
-}
-
-/* Once settled, payouts replace stale action labels. Keep the deck anchor measurable. */
-.multiplayer-page .phase-finished .seat-action:not(.winner-action) {
-  visibility: hidden;
-}
-@media (max-width: 680px) {
-  .multiplayer-page .table-count-6 .preview-deck {
-    display: block;
-  }
-  .multiplayer-page .preview-seat-label strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 }

@@ -55,7 +55,7 @@ describe("Engine-to-Motion adapter", () => {
       const p = fromSnapshot(dto);
       expect(p.players).toHaveLength(n);
       expect(p.heroId).toBe("stable-1");
-      expect(p.positions!["stable-1"]).toEqual({ left: 50, bottom: 3 });
+      expect(p.positions!["stable-1"]).toEqual("south");
       for (const player of p.players) {
         expect(player.cards).toHaveLength(2);
         if (player.id !== p.heroId) {
@@ -160,7 +160,8 @@ describe("Engine-to-Motion adapter", () => {
       ],
       "hero",
     );
-    expect(p.hero).toEqual({ left: 50, bottom: 3 });
-    expect(p.second.left).toBeLessThan(p.third.left);
+    expect(p.hero).toEqual("south");
+    expect(p.second).toBe("north-west");
+    expect(p.third).toBe("north-east");
   });
 });

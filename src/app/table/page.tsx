@@ -166,7 +166,7 @@ export default function Table() {
   }
   return (
     <main
-      className={`page rehearsal-page multiplayer-page ${view.phase === "WAITING" ? "is-waiting" : ""}`}
+      className={`page rehearsal-page multiplayer-page ${view.phase === "WAITING" ? "is-waiting" : view.phase === "FINISHED" ? "is-complete" : ""}`}
     >
       <div className="rehearsal-toolbar">
         {between ? (
@@ -220,23 +220,6 @@ export default function Table() {
             onSelectSeat={setSelected}
             activeSeat={busy ? undefined : (view.actorId ?? undefined)}
           />
-          {view.phase === "WAITING" && (
-            <div className="table-welcome">
-              <Spade size={22} fill="currentColor" />
-              <strong>
-                {ready < 2 ? "Waiting for players" : "Your table is ready."}
-              </strong>
-              <span>
-                {view.players.length} / {snapshot.room.capacity} players ·{" "}
-                {snapshot.room.smallBlind} / {snapshot.room.bigBlind} blinds
-              </span>
-              <button className="room-code-share" onClick={copy}>
-                {copied ? "Copied!" : snapshot.room.code}
-                <Copy size={15} />
-              </button>
-              <span>Share the code with a friend in another browser.</span>
-            </div>
-          )}
         </div>
         <section
           className="table-dock panel"
@@ -288,6 +271,23 @@ export default function Table() {
             </ol>
           </div>
           {view.phase === "WAITING" && (
+            <div className="table-welcome">
+              <Spade size={22} fill="currentColor" />
+              <strong>
+                {ready < 2 ? "Waiting for players" : "Your table is ready."}
+              </strong>
+              <span>
+                {view.players.length} / {snapshot.room.capacity} players ·{" "}
+                {snapshot.room.smallBlind} / {snapshot.room.bigBlind} blinds
+              </span>
+              <button className="room-code-share" onClick={copy}>
+                {copied ? "Copied!" : snapshot.room.code}
+                <Copy size={15} />
+              </button>
+              <span>Share the code with a friend in another browser.</span>
+            </div>
+          )}
+          {view.phase === "WAITING" && (
             <div className="room-roster" aria-label="Room players">
               <p>
                 <strong>
@@ -323,7 +323,7 @@ export default function Table() {
             </div>
           )}
           {!busy && view.result && (
-            <details className="hand-result" open>
+            <details className="hand-result" open={!focused}>
               <summary>
                 Hand result ·{" "}
                 {view.result.reason === "UNCONTESTED"

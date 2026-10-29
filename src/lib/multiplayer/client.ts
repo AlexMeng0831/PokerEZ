@@ -16,6 +16,7 @@ type State = {
   snapshot: RoomSnapshot | null;
   session: SessionInfo | null;
   pending: boolean;
+  roomVerified: boolean;
   error: string;
 };
 export const useRoomStore = create<State>(() => ({
@@ -23,6 +24,7 @@ export const useRoomStore = create<State>(() => ({
   snapshot: null,
   session: null,
   pending: false,
+  roomVerified: false,
   error: "",
 }));
 let socket: Socket<ServerEvents, ClientEvents> | null = null;
@@ -52,7 +54,7 @@ async function connectGuest(): Promise<void> {
       const session = (await response.json()) as SessionInfo;
       useRoomStore.setState({ session });
       if (!session.roomCode) {
-        useRoomStore.setState({ snapshot: null });
+        useRoomStore.setState({ snapshot: null, roomVerified: false });
         usePokerStore.getState().leave();
       }
       const endpoint =
@@ -65,14 +67,19 @@ async function connectGuest(): Promise<void> {
       });
       socket = next;
       next.on("connect", () =>
-        useRoomStore.setState({ status: "connected", error: "" }),
+        useRoomStore.setState({
+          status: "connected",
+          error: "",
+          roomVerified: false,
+        }),
       );
       next.on("disconnect", () =>
-        useRoomStore.setState({ status: "reconnecting" }),
+        useRoomStore.setState({ status: "reconnecting", roomVerified: false }),
       );
       next.on("connect_error", (error) => {
         useRoomStore.setState({
           status: "reconnecting",
+          roomVerified: false,
           error:
             error.message === "AUTH_REQUIRED"
               ? "Your guest session needs to reconnect."
@@ -96,6 +103,7 @@ async function connectGuest(): Promise<void> {
       next.on("room:left", () => {
         useRoomStore.setState((state) => ({
           snapshot: null,
+          roomVerified: false,
           session: state.session ? { ...state.session, roomCode: null } : null,
         }));
         usePokerStore.getState().leave();
@@ -104,7 +112,12 @@ async function connectGuest(): Promise<void> {
         const old = useRoomStore.getState().snapshot;
         if (old?.room.code === data.room.code && old.version > data.version)
           return;
-        useRoomStore.setState({ snapshot: data, error: "" });
+        useRoomStore.setState({
+          snapshot: data,
+          error: "",
+          roomVerified: true,
+          session: { playerId: data.playerId, roomCode: data.room.code },
+        });
         usePokerStore.getState().setRoom({
           code: data.room.code,
           name: data.room.name,
@@ -161,4 +174,45 @@ export function useMultiplayer() {
     void connectGuest();
   }, []);
   return { ...state, reconnect: () => void connectGuest() };
+}
+
+let membershipCheck: Promise<void> | null = null;
+/** Refresh cross-tab membership on navigation/focus without trusting persisted lobby metadata. */
+export function refreshRoomMembership(): Promise<void> {
+  if (membershipCheck) return membershipCheck;
+  const before = useRoomStore.getState().snapshot;
+  if (!socket?.connected || !before) return Promise.resolve();
+  useRoomStore.setState({ roomVerified: false });
+  membershipCheck = (async () => {
+    try {
+      const response = await fetch("/api/game/session", {
+        method: "POST",
+        credentials: "same-origin",
+        signal: AbortSignal.timeout(8000),
+        headers: { "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (!response.ok) return;
+      const session = (await response.json()) as SessionInfo;
+      // A newer socket projection already supersedes this HTTP request.
+      if (useRoomStore.getState().snapshot !== before) return;
+      useRoomStore.setState({ session });
+      if (
+        session.roomCode !== before.room.code ||
+        session.playerId !== before.playerId
+      ) {
+        useRoomStore.setState({ snapshot: null, roomVerified: false });
+        usePokerStore.getState().leave();
+      }
+      if (session.playerId !== before.playerId) {
+        socket?.disconnect();
+        socket?.connect();
+      } else if (session.roomCode) socket?.emit("room:sync");
+    } catch {
+      /* Leave the shortcut unverified until a fresh socket projection arrives. */
+    } finally {
+      membershipCheck = null;
+    }
+  })();
+  return membershipCheck;
 }

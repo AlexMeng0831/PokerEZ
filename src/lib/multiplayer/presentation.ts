@@ -19,7 +19,8 @@ export type VisualPlayer = {
   role?: string;
   connected?: boolean;
 };
-export type SeatPosition = { left: number; top?: number; bottom?: number };
+export type SeatPosition =
+  "north-west" | "north" | "north-east" | "south-west" | "south" | "south-east";
 export type TablePresentation = {
   players: VisualPlayer[];
   board: { card: VisualCard; revealed: boolean }[];

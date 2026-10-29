@@ -1,7 +1,8 @@
+import { seatPositions } from "./seat-layout";
+export { seatPositions } from "./seat-layout";
 import { evaluateHand, type Card, type HandValue } from "@pokerez/poker-engine";
 import type { RoomSnapshot } from "@pokerez/multiplayer/protocol";
 import type {
-  SeatPosition,
   TablePresentation,
   VisualCard,
   VisualHand,
@@ -87,49 +88,6 @@ export function valueHint(value: HandValue): VisualHand {
       return v.rank + v.suit;
     }),
   };
-}
-/** Positions are relative to the viewer; identity and physical seat order stay stable. */
-export function seatPositions(
-  players: { id: string; seat: number }[],
-  heroId: string,
-): Record<string, SeatPosition> {
-  const sorted = [...players].sort((a, b) => a.seat - b.seat);
-  const hero = sorted.findIndex((p) => p.id === heroId);
-  const ordered = [...sorted.slice(hero), ...sorted.slice(0, hero)];
-  const patterns: Record<number, SeatPosition[]> = {
-    1: [],
-    2: [{ left: 50, top: 3 }],
-    3: [
-      { left: 27, top: 9 },
-      { left: 73, top: 9 },
-    ],
-    4: [
-      { left: 15, top: 65 },
-      { left: 50, top: 8 },
-      { left: 85, top: 65 },
-    ],
-    5: [
-      { left: 15, top: 65 },
-      { left: 24, top: 12 },
-      { left: 76, top: 12 },
-      { left: 85, top: 65 },
-    ],
-    6: [
-      { left: 15, top: 65 },
-      { left: 16, top: 22 },
-      { left: 50, top: 1 },
-      { left: 84, top: 22 },
-      { left: 85, top: 65 },
-    ],
-  };
-  return Object.fromEntries(
-    ordered.map((p, i) => [
-      p.id,
-      i === 0
-        ? { left: 50, bottom: 3 }
-        : (patterns[players.length] ?? patterns[6])[i - 1],
-    ]),
-  );
 }
 export function fromSnapshot(
   snapshot: RoomSnapshot,

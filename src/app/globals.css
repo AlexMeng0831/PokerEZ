@@ -2552,22 +2552,97 @@ footer {
   }
 }
 
-.hero-quick-play { display:flex; align-items:center; gap:14px; margin-top:22px; }
-.hero-quick-play > span { color:var(--muted); font-size:10px; }
-.hero-quick-play + .hero-meta { margin-top:18px; }
-@media(hover:hover) {
-  .play-page .room-card { transition:border-color .2s, box-shadow .2s; }
-  .play-page .room-card:hover { border-color:color-mix(in srgb,var(--blue) 30%,var(--border)); box-shadow:0 5px 20px #2869ee08; }
+.hero-quick-play {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 22px;
 }
-@media(max-width:680px) {
-  .hero-quick-play { gap:10px; flex-wrap:wrap; }
-  .hero-quick-play > span { font-size:9px; }
+.hero-quick-play > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+.hero-quick-play + .hero-meta {
+  margin-top: 18px;
+}
+@media (hover: hover) {
+  .play-page .room-card {
+    transition:
+      border-color 0.2s,
+      box-shadow 0.2s;
+  }
+  .play-page .room-card:hover {
+    border-color: color-mix(in srgb, var(--blue) 30%, var(--border));
+    box-shadow: 0 5px 20px #2869ee08;
+  }
+}
+@media (max-width: 680px) {
+  .hero-quick-play {
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .hero-quick-play > span {
+    font-size: 9px;
+  }
 }
 
 /* Keep the real room actions in the first view. */
-.play-page .hero { min-height: 280px; padding-top: 34px; padding-bottom: 32px; }
-#join-room { scroll-margin-top: 24px; }
+.play-page .hero {
+  min-height: 280px;
+  padding-top: 34px;
+  padding-bottom: 32px;
+}
+#join-room {
+  scroll-margin-top: 24px;
+}
 @media (max-width: 680px) {
-  .play-page .hero { min-height: unset; padding-top: 28px; padding-bottom: 24px; }
-  .hero-quick-play .button { flex: 1; }
+  .play-page .hero {
+    min-height: unset;
+    padding-top: 28px;
+    padding-bottom: 24px;
+  }
+  .hero-quick-play .button {
+    flex: 1;
+  }
+}
+/* Resume occupies a real header slot instead of squeezing the mobile navigation. */
+.header.has-active-room {
+  gap: 32px;
+}
+.resume-game {
+  white-space: nowrap;
+}
+@media (max-width: 680px) {
+  .header.has-active-room {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0 8px;
+    height: auto;
+    min-height: 104px;
+    padding-top: 8px;
+  }
+  .has-active-room .brand {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .has-active-room .header-actions {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .has-active-room nav {
+    grid-column: 1/-1;
+    grid-row: 2;
+    min-height: 40px;
+    margin-left: 0;
+    justify-content: center;
+    gap: 32px;
+  }
+  .has-active-room .resume-game {
+    font-size: 11px;
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+  .resume-game svg {
+    display: none;
+  }
 }

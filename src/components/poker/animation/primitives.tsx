@@ -211,13 +211,20 @@ export function PotDisplay({
   reduced: boolean;
 }) {
   return (
-    <SidePotLabels
-      pots={pots}
-      total={amount}
-      reduced={reduced}
-      names={names}
-      pending={pending}
-    />
+    <>
+      <SidePotLabels
+        pots={pots}
+        total={amount}
+        reduced={reduced}
+        names={names}
+        pending={pending}
+      />
+      {pots.length > 3 && (
+        <small className="pot-scroll-hint">
+          {pots.length} pots · scroll to view
+        </small>
+      )}
+    </>
   );
 }
 export function SidePotLabels({
@@ -237,7 +244,8 @@ export function SidePotLabels({
   return (
     <motion.div
       className={`pot-split-display ${main ? "is-split" : ""} ${pots.length > 3 ? "many-pots" : ""}`}
-      aria-label={`Total pot: ${total} chips`}
+      aria-label={`Total pot: ${total} chips${pots.length ? ` across ${pots.length} pots` : ""}`}
+      tabIndex={pots.length > 3 ? 0 : undefined}
     >
       <motion.div
         layout={!reduced}
