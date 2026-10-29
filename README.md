@@ -1,106 +1,115 @@
 # PokerEZ
 
-A browser-based poker platform for private, real-time Texas Hold'em games.
+**No-Limit Texas Hold'em with friends, right in your browser.**
 
-Create a room, invite friends with a room code, and play No-Limit Hold'em with **2–6 players**. No download or registration is required. All games use virtual chips.
+PokerEZ is a real-time poker app for private games with **2–6 players**. Create a table, share a six-character room code, and play full hands together. No downloads, accounts, or real-money stakes—just play chips.
 
-**Live demo:** not deployed yet.
+**[Play PokerEZ](https://pokerez.onrender.com)** · [How to play](#how-to-play) · [Architecture](#how-it-works) · [What's next](#whats-next)
 
 ![PokerEZ multiplayer table](docs/images/poker-table.png)
 
-[How to play](#how-to-play) · [Architecture](#architecture) · [Local development](#local-development) · [Future development](#future-development)
+> **Live demo:** Hosted on Render's free tier. The first visit after inactivity may take a minute to wake the server. Games and guest sessions are currently stored in memory, so a server restart clears active tables.
 
-## Features
+## What you can do
 
-- Private rooms with configurable fixed blinds, stable seats and online presence.
-- Complete Hold'em hands: legal betting, all-ins, automatic runouts, side pots, split pots and per-pot payouts.
-- Custom bet sizing with MIN and ALL IN, a turn timer, best-hand highlights and an in-table rules reference.
-- Guest sessions that restore the same seat and private cards after a refresh or reconnect.
-- Responsive tables, light/dark themes and event-driven card/chip animations with Reduced Motion support.
-- A standalone, deterministic TypeScript engine with action-history replay, tests and a CLI simulator.
+- **Play with friends in real time.** Create a private room, choose the blinds and table size, invite friends by code, and see who's connected.
+- **Play complete No-Limit Hold'em hands.** Fold, check, call, bet, raise, or go all-in. The engine handles betting order, minimum raises, short all-ins, side pots, split pots, and showdown payouts.
+- **Follow the action.** Animated dealing, community cards, chip movements, turn indicators, countdowns, and per-pot results make each hand easy to read.
+- **Keep your seat when you navigate away.** Guest sessions support refresh and reconnects, with a **Resume Game** shortcut when you're still seated. A timed-out action automatically checks if legal, otherwise folds.
+- **Learn while you play.** Hand rankings, betting explanations, and an in-table reference help newer players understand what's happening.
 
-Learn includes rules and hand rankings. Profile is explicitly labeled sample data; it does not track live player statistics. The separate `/preview` route is a scripted animation playground.
+The **Profile** page currently previews sample statistics; it does not yet save your real hands or results. The separate `/preview` route is an animation playground, not a live game.
 
 ## How to play
 
-1. Select **Create Room**, choose the blinds and seat count, then share the six-character room code.
-2. Friends enter the code under **Join Room**. The waiting room shows who is online and ready.
-3. With at least two connected players holding chips, any player can select **Deal me in**.
-4. Fold, check/call, or enter a bet. **Raise to** means the total committed on the current street. Legal ranges come from the server.
-5. Review the per-pot result, then deal the next hand. A player without chips can top up between hands.
+1. Open **[PokerEZ](https://pokerez.onrender.com)** and select **Create Room**. Set the number of seats and blinds.
+2. Share the six-character room code. Friends can use **Join Room** from their own browsers or devices.
+3. Once at least two players are connected, select **Deal me in**. Take turns using the actions shown for your seat.
+4. After the hand, review the pot payouts and deal again. If you run out of play chips, you can top up between hands.
 
-Refresh keeps your seat. Returning to the lobby also keeps it; **Leave room** releases it between hands. For two local players, use different browsers or profiles—ordinary tabs in one profile share a Guest identity.
+Use **Resume Game** to return to your current table after visiting other pages. A guest identity is stored in a browser cookie: two players testing on one computer should use different browser profiles or a normal and private window.
 
-## Architecture
+## How it works
+
+PokerEZ separates the rules of poker from the network and the interface. The server is authoritative: browsers request actions, but they never decide which moves are legal, who wins, or how chips are distributed.
 
 ```mermaid
 flowchart LR
-  UI[React / Next.js frontend] -->|Commands + revision| Server[Socket.IO room server]
-  Server -->|startHand / applyAction| Engine[Pure TypeScript poker engine]
-  Engine -->|State transition + typed events| Server
-  Server -->|Private Player View + filtered events| Adapter[Presentation / animation adapter]
-  Adapter -->|Snapshot + Motion queue| UI
+    UI["Browser<br/>Next.js + React"] <-->|"Guest session / Socket.IO"| Server["Multiplayer server<br/>Node.js + room state"]
+    Server <-->|"Actions, transitions, events"| Engine["Poker engine<br/>Pure TypeScript"]
+    UI --> View["Presentation adapter<br/>Motion animations"]
 ```
 
-- **Frontend:** room controls, table presentation and user input. It renders legal actions supplied by the engine rather than duplicating betting rules.
-- **Multiplayer server:** authenticates Guests, owns in-memory rooms, orders commands and sends each recipient an authorized projection.
-- **Engine:** independent state transitions, betting, best-five evaluation and pot settlement. It has no React, Socket.IO or runtime dependencies.
-- **Animation adapter:** maps player views into seats/cards/pots and plays filtered events through DOM-anchored Motion components. Reconnects replace the presentation with a fresh snapshot.
+### Engineering decisions
 
-## Engineering highlights
+**A rules engine independent of the UI.** The standalone TypeScript engine handles turn order, legal actions, hand evaluation, betting transitions, and side-pot settlement. It can be exercised from tests and a CLI simulator without React or Socket.IO.
 
-**Server-authoritative state.** Clients submit intent, not modified game state. The server supplies the authenticated Player ID. Hand IDs, revisions and request receipts reject stale actions and deduplicate retries.
+**Server-authoritative multiplayer.** Socket.IO carries player commands and per-recipient updates. The server associates each action with an authenticated guest session, checks the hand ID and state revision, and deduplicates repeated requests so a retry cannot apply an action twice.
 
-**Secure dealing and private views.** Live hands use Fisher–Yates shuffling with Node's cryptographic `randomInt`. Complete state, deck and burn cards remain server-side. Player views and public/private event filters determine what each socket may receive.
+**Private game state.** Live hands are shuffled on the server using cryptographically secure randomness. Each player receives an authorized view and filtered events rather than the complete deck or another player's hidden cards.
 
-**Session continuity.** Opaque HttpOnly Guest cookies identify players independently of socket connections. Refreshing restores the existing seat. A 45-second timer checks when legal and otherwise folds; reconnecting does not reset it.
+**Event-driven presentation.** The game engine emits typed events; an adapter turns them into card, chip, board, and payout animations. On reconnect, the UI restores the latest server snapshot instead of trying to replay missed animations.
 
-**Betting and settlement in one place.** The engine handles short all-ins and per-player raise reopening. Contribution levels form independently eligible main/side pots, with uncalled refunds, split payouts and deterministic odd-chip allocation. The UI displays those results.
+**Reproducible testing.** Fixed-seed engine fixtures, recorded actions, replay checks, randomized invariants, and real Socket.IO integration tests cover betting, chip conservation, hidden information, reconnects, and multi-pot settlement.
 
-**Replayable rules, replaceable transport.** Seeded fixtures, recorded actions and typed events support reproducible engine tests and offline simulation. The same boundary can support future bot policies without coupling rules to the browser or network.
-
-Implementation details: [Engine](packages/poker-engine/README.md), [Multiplayer protocol and operations](packages/multiplayer/README.md), [House rules](packages/poker-engine/house-rules.md).
+For implementation details, see the [engine documentation](packages/poker-engine/README.md), [multiplayer server documentation](packages/multiplayer/README.md), and [house rules](packages/poker-engine/house-rules.md).
 
 ## Tech stack
 
-| Layer             | Technologies                                                               |
-| ----------------- | -------------------------------------------------------------------------- |
-| Interface         | Next.js, React, TypeScript, Tailwind CSS, Radix/shadcn-style UI primitives |
-| State and themes  | Zustand, next-themes                                                       |
-| Animation         | Motion for React, DOM anchors                                              |
-| Multiplayer       | Node.js 24, Socket.IO, in-memory room storage                              |
-| Rules and testing | Pure TypeScript, Vitest, fast-check, Node test runner                      |
+| Layer | Technologies |
+| --- | --- |
+| Web app | Next.js, React, TypeScript, Tailwind CSS |
+| Real-time server | Node.js, Socket.IO |
+| Poker rules | Standalone TypeScript state machine |
+| UI state & animation | Zustand, Motion for React |
+| Testing | Vitest, fast-check, Node.js test runner |
+| Hosting | Render (single web service) |
 
-## Local development
+## Run locally
 
-Requires **Node.js 24** and npm. From the repository root:
+Requires **Node.js 24** and npm.
 
-```sh
+```bash
+git clone https://github.com/AlexMeng0831/PokerEZ.git
+cd PokerEZ
 npm ci
 npm run dev
 ```
 
-Open [localhost:3000](http://localhost:3000). This starts Next.js on port **3000** and the multiplayer server on **3001**. The frontend proxies API and Socket.IO requests to the backend; local defaults need no environment variables or external services.
+Open **http://localhost:3000**. This starts Next.js on port 3000 and the multiplayer server on port 3001. The web app proxies session and Socket.IO traffic to the server.
 
-```sh
-npm run check             # All tests, typechecks and builds
-npm run engine:test      # Engine rules and randomized invariants
-npm run server:test      # Real HTTP / Socket.IO integration tests
-npm run adapter:test     # Player View and presentation mapping
-npm test                 # Mock animation state tests
-npm run engine:simulate  # Standalone CLI hand simulations
+```bash
+npm run check            # Tests, typechecks, and builds
+npm run engine:test      # Poker rules and randomized invariants
+npm run server:test      # Socket.IO integration tests
+npm run adapter:test     # UI presentation tests
+npm run engine:simulate  # Run example hands without the browser
 ```
 
-For a production build, run `npm run build`, then `npm start` to build the server and start both processes. Hosting needs HTTPS, allowed origins and a reverse proxy to the Node process; a static-only export cannot host multiplayer. See [server configuration](packages/multiplayer/README.md#configuration). Automatic GitHub Actions CI is disabled; use `npm run check` locally before pushing.
+## What's next
 
-## Current limits
+PokerEZ started as a way to play poker with friends. The longer-term goal is to use the same game engine as a foundation for **recording decisions, understanding playing styles, and experimenting with poker agents**. The playable table comes first; the features below are planned, not implemented.
 
-Rooms, Guest sessions and request receipts live in one process and are lost on backend restart. There is no database or registered account system. Joining, leaving and topping up happen between hands; disconnected seats remain reserved until explicitly released or the offline room expires. This is a fixed-blind, virtual-chip cash-table ruleset without tournaments or rake.
+### 1. Persistent hand history
 
-## Future development
+Store hands beyond an individual server session: positions, effective stacks, public board cards, betting actions, pot sizes, and results. A player should be able to revisit a hand street by street instead of relying on the final win or loss. Persistent storage and user accounts would also make personal history available across devices. Hidden cards would remain subject to appropriate visibility rules.
 
-The engine and multiplayer boundaries are intended to support a broader poker platform. The following work is **not implemented**:
+### 2. Player profiles and decision analysis
 
-- **Persistent hand history:** store hands, positions, decisions and outcomes for review and analysis beyond a server session.
-- **Player analytics:** derive VPIP, PFR, aggression, position-specific results and recurring decision patterns from recorded hands, then explore useful strategy feedback.
-- **AI poker bots and training:** first add reproducible offline policy evaluation and distinct play styles such as Tight-Aggressive, Loose-Passive and Calling Station. Later experiments could compare supervised learning, behavior cloning, self-play and reinforcement learning against those baselines.
+Turn recorded hands into useful statistics such as **VPIP, PFR, aggression frequency, showdown tendencies, and results by position**. More interestingly, compare behavior across heads-up and multiway pots, stack depths, and betting streets.
+
+The aim is to identify patterns—for example, entering too many pots passively, repeatedly chasing draws without sufficient pot odds, or bluffing in unfavorable situations. A lost hand is not automatically a bad decision, so any future feedback should distinguish decision quality from short-term outcomes and account for sample size.
+
+### 3. Poker bots and a training environment
+
+Start with interpretable baseline bots—**Tight-Aggressive, Loose-Passive, Calling Station**, and more—and evaluate their performance in repeatable offline matches. Because the engine runs independently of the website, simulated hands do not need a browser or WebSocket connection.
+
+That provides a path toward supervised behavior cloning from appropriately labeled decisions, comparing learned policies against rule-based baselines, and eventually self-play or reinforcement learning. The goal is to make experimenting with strategies measurable and reproducible, not simply to attach an AI label to the game.
+
+### 4. Insights back in the product
+
+Eventually, connect the two sides: let players review their own histories, understand their tendencies, and practice against bots with distinct styles. The game would remain simple to join and play while offering deeper tools to anyone interested in improving.
+
+## Current limitations
+
+PokerEZ currently uses **play chips only**, with guest sessions and in-memory rooms. There are no permanent accounts, saved player statistics, or persistent games. Server restarts clear active tables; the public demo may also take time to wake after inactivity. The ruleset is a fixed-blind cash-style table, not a tournament system.
